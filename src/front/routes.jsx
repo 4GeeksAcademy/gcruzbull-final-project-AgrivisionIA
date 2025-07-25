@@ -9,6 +9,13 @@ import { Layout } from "./pages/Layout";
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
+import { Login } from "./pages/Login";
+import { Register } from "./pages/Register"; 
+import { RecoveryPassword } from "./pages/RecoveryPassword";
+import { UpdatePassword } from "./pages/UpdatePassword";
+import { AboutUs } from "./pages/AboutUs";
+import { Dashboard } from "./pages/Dashboard";
+import { Profile } from "./pages/Profile";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -25,6 +32,13 @@ export const router = createBrowserRouter(
         <Route path= "/" element={<Home />} />
         <Route path="/single/:theId" element={ <Single />} />  {/* Dynamic route for single items */}
         <Route path="/demo" element={<Demo />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/recovery-password" element={<RecoveryPassword />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
     )
 );

@@ -1,0 +1,7 @@
+.bg-green-gradient {
+    background: linear-gradient(to bottom, #e9f8ec 0%, #eefbf3 70%, rgba(255, 255, 255, 1) 100%);
+}
+
+.border-dashed {
+    border-style:dashed;
+}

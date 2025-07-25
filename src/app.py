@@ -6,30 +6,46 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User, Farm, NDVI_images, Aereal_images
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from base64 import b64encode
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import timedelta
 
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
+
 app = Flask(__name__)
+
+# jwt configuration. Must be after app = Flask(__name__)
+# setup jwt_extended to generate token
+# El token lo voy a generar en routes.py
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+jwt = JWTManager(app)
+
+# CORS(app)
+
 app.url_map.strict_slashes = False
 
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
-        "postgres://", "postgresql://")
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
+CORS(app)
 
 # add the admin
 setup_admin(app)
@@ -42,13 +58,11 @@ app.register_blueprint(api, url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
 
-
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # generate sitemap with all your endpoints
-
 
 @app.route('/')
 def sitemap():
@@ -66,7 +80,7 @@ def serve_any_other_file(path):
     return response
 
 
-# this only runs if `$ python src/main.py` is executed
+# this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3001))
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    PORT = int(os.environ.get('PORT', 3000))
+    app.run(host='0.0.0.0', port=PORT, debug=False)
