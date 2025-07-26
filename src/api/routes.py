@@ -331,3 +331,21 @@ def create_farm():
     db.session.commit()
 
     return jsonify({"message": "Registro de campo creado correctamente"}), 201
+
+
+# Eliminar huerto creado
+
+@api.route('/farms/<int:farm_id>', methods=['DELETE'])
+@jwt_required()
+def delete_farm(farm_id):
+    current_user_id = get_jwt_identity()
+    farm = Farm.query.filter_by(id=farm_id, user_id=current_user_id).first()
+
+    if not farm:
+        return jsonify({"error": "Campo no encontrado o no autorizado"}), 404
+
+    db.session.delete(farm)
+    db.session.commit()
+
+    return jsonify({"message": "Huerto eliminado correctamente"}), 200
+

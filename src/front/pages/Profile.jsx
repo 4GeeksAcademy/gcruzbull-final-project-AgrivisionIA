@@ -8,7 +8,7 @@ const initialProfileState = {
     phone_number: '',
     // farm_location: '',
     // farm_name: '',
-    farms: [], // <- lista de granjas    
+    farms: [],          // lista de campos    
     avatar: '',
 }
 
@@ -103,6 +103,8 @@ export const Profile = () => {
                 alert("Campo registrado correctamente");
                 setNewFarm({ farm_name: '', farm_location: '' });
                 fetchUserProfile();         // actualiza perfil con el nuevo huerto
+            } else if (response.status === 409) {
+                alert("Ya existe una huerto con ese nombre o ubicación");
             } else {
                 alert(data.error || "Error al registrar el campo");
             }
