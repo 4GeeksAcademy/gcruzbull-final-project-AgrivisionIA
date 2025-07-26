@@ -6,8 +6,9 @@ const initialProfileState = {
     full_name: '',
     email: '',
     phone_number: '',
-    farm_location: '',
-    farm_name: '',
+    // farm_location: '',
+    // farm_name: '',
+    farms: [], // <- lista de granjas    
     avatar: '',
 }
 
@@ -18,6 +19,11 @@ export const Profile = () => {
     const navigate = useNavigate()
 
     const [profileForm, setProfileForm] = useState(initialProfileState);
+
+    const [newFarm, setNewFarm] = useState({
+        farm_name: '',
+        farm_location: ''
+    });
 
     // const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +36,7 @@ export const Profile = () => {
 
 
     const fetchUserProfile = async () => {
-        const token = localStorage.getItem("token"); // o donde guardes tu JWT
+        const token = localStorage.getItem("token"); // Donde guardo mi token JWT (lo puedo ver en DevTools)
 
         if (!token) {
             console.error("No hay token disponible");
@@ -67,6 +73,45 @@ export const Profile = () => {
         fetchUserProfile();
     }, []);
 
+    const handleAddFarm = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("Usuario no autenticado");
+            return;
+        }
+
+        if (!newFarm.farm_name || !newFarm.farm_location) {
+            alert("Debes completar ambos campos");
+            return;
+        }
+
+        try {
+            const urlBackend = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`${urlBackend}/api/farms`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(newFarm)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Campo registrado correctamente");
+                setNewFarm({ farm_name: '', farm_location: '' });
+                fetchUserProfile();         // actualiza perfil con el nuevo huerto
+            } else {
+                alert(data.error || "Error al registrar el campo");
+            }
+
+        } catch (error) {
+            console.error("Error al registrar campo:", error);
+            alert("Error de conexión");
+        }
+    };
 
     return (
 
@@ -77,16 +122,10 @@ export const Profile = () => {
                 <div className="col-sm-4 col-md-4" style={{ border: "1px solid red" }}>
                     <img
                         src={profileForm.avatar || "https://avatar.iran.liara.run/public/4"}
+                        onError={(event) => event.target.src = "https://avatar.iran.liara.run/public/4"}
                         className="img-fluid rounded m-auto"
                         alt="Imagen de Perfil"
                     />
-                    {/*<img
-                        src="https://avatar.iran.liara.run/public/4"
-                        value={profileForm.avatar}
-                        onChange={handleInputChange}
-                        className="img-fluid rounded m-auto"
-                        alt="Imagen de Perfil"
-                    />*/}
                 </div>
 
                 {/* Datos personales */}
@@ -104,7 +143,6 @@ export const Profile = () => {
                                 name="full_name"
                                 value={profileForm.full_name}
                                 onChange={handleInputChange}
-
                             />
                         </div>
                     </div>
@@ -140,6 +178,56 @@ export const Profile = () => {
                     </div>
 
                     <div className="mb-3">
+                        <label className="fw-bold form-label">Tus Campos</label>
+                        {profileForm.farms.length > 0 ? (
+                            <ul className="list-group">
+                                {profileForm.farms.map((farm, index) => (
+                                    <li key={index} className="list-group-item">
+                                        <strong>{farm.farm_name}</strong> - {farm.farm_location}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-muted">
+                                No tienes granjas registradas.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="mb-3">
+                        <label className="fw-bold form-label">Registrar Nuevo Campo</label>
+                        <div className="input-group mb-2">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Nombre del campo"
+                                name="farm_name"
+                                value={newFarm.farm_name}
+                                onChange={(event) =>
+                                    setNewFarm({ ...newFarm, farm_name: event.target.value })
+                                }
+                            />
+                        </div>
+                        <div className="input-group mb-2">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Ubicación del campo"
+                                name="farm_location"
+                                value={newFarm.farm_location}
+                                onChange={(event) =>
+                                    setNewFarm({ ...newFarm, farm_location: event.target.value })
+                                }
+                            />
+                        </div>
+                        <button className="btn btn-success" onClick={handleAddFarm}>
+                            Agregar Granja
+                        </button>
+                    </div>
+
+
+
+                    {/*<div className="mb-3">
                         <label htmlFor="farmLocation" className="fw-bold form-label">Ubicación del campo</label>
                         <div className="input-group">
                             <input
@@ -167,7 +255,7 @@ export const Profile = () => {
                                 onChange={handleInputChange}
                             />
                         </div>
-                    </div>
+                    </div>*/}
                 </div>
 
                 {/* botones */}

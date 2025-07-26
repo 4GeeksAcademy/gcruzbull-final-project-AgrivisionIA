@@ -227,16 +227,20 @@ def get_profile():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
     
+    # Serializamos todas las granjas asociadas al usuario
+    farms = [farm.serialize() for farm in user.farm_of_user]
+    
     # Accede a la primera granja asociada
-    farm = user.farm_of_user[0] if user.farm_of_user else None
+    # farm = user.farm_of_user[0] if user.farm_of_user else None
 
     return jsonify({
         "full_name": user.full_name,
         "email": user.email,
         "phone_number": user.phone_number,
-        "farm_location": farm.farm_location if farm else "",
-        "farm_name": farm.farm_name if farm else "",
-        "avatar": user.avatar
+        # "farm_location": farm.farm_location if farm else "",
+        # "farm_name": farm.farm_name if farm else "",
+        "avatar": user.avatar,
+        "farms": farms              # Lista de diccionarios con farm_name, farm_location y user_id
     }), 200
 
     
@@ -295,3 +299,35 @@ def get_user():
         return jsonify({"error": "Person not found"}), 404
     else:
         return jsonify(single_user.serialize()), 200
+    
+# 13) [POST] de /farms para agregar campos
+
+@api.route('/farms', methods=['POST'])
+@jwt_required()
+def create_farm():
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    farm_name = data.get("farm_name")
+    farm_location = data.get("farm_location")
+
+    if not farm_name or not farm_location:
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+    
+    # Validar si ya existe un huerto con ese nombre o ubicación
+    existing_farm = Farm.query.filter(
+        (Farm.farm_name == farm_name) | (Farm.farm_location == farm_location)
+    ).first()
+
+    if existing_farm:
+        return jsonify({"error": "Ya existe un huerto con ese nombre o ubicación"}), 409
+
+    new_farm = Farm(
+        user_id=current_user_id,
+        farm_name=farm_name,
+        farm_location=farm_location
+    )
+
+    db.session.add(new_farm)
+    db.session.commit()
+
+    return jsonify({"message": "Registro de campo creado correctamente"}), 201
