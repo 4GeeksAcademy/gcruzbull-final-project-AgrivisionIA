@@ -1,4 +1,4 @@
-export const initialStore=()=>{
+export const initialStore = () => {
   return{
     message: null,
     todos: [
@@ -12,9 +12,10 @@ export const initialStore=()=>{
         title: "Do my homework",
         background: null,
       }
-    ]
+    ],
+    token: localStorage.getItem("token") || null,
   }
-}
+};
 
 export default function storeReducer(store, action = {}) {
   switch(action.type){
@@ -23,16 +24,38 @@ export default function storeReducer(store, action = {}) {
         ...store,
         message: action.payload
       };
-      
-    case 'add_task':
 
-      const { id,  color } = action.payload
+    case 'set_about':
+
+      const about = action.payload
 
       return {
         ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
+        about: about      // mantengo todo pero cambio about en blanco (lo de arriba)(el de azul son los datos que vienen)
       };
+
+    case 'set_dashboard':
+
+      const dashboard = action.payload
+
+      return {
+        ...store,
+        planets: dashboard
+      };
+
+    case 'login':
+      return {
+        ...store,
+        token: action.payload,
+      };
+
+    case 'logout':
+      return {
+        ...store,
+        token: localStorage.getItem("token") || null,
+      };
+
     default:
       throw Error('Unknown action.');
   }    
-}
+};
