@@ -47,12 +47,14 @@ export const Profile = () => {
                 }
             });
 
+            console.log("TOKEN ENVIADO:", token);
+
             if (!response.ok) {
                 throw new Error("Error al obtener el perfil");
             }
 
             const data = await response.json();
-            console.log("✅ Datos del perfil:", data);
+            console.log("Datos del perfil:", data);
 
             setProfileForm(data);  // esto llenará todos los campos
 
@@ -103,6 +105,21 @@ export const Profile = () => {
                                 value={profileForm.full_name}
                                 onChange={handleInputChange}
 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="phone" className="fw-bold form-label">Teléfono</label>
+                        <div className="input-group">
+                            <input
+                                type="tel"
+                                className="form-control"
+                                id="phone"
+                                placeholder="Número de Teléfono"
+                                name="phone_number"
+                                value={profileForm.phone_number}
+                                onChange={handleInputChange}
                             />
                         </div>
                     </div>

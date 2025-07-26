@@ -14,7 +14,7 @@ from datetime import timedelta
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
-CORS(api)
+CORS(api, supports_credentials=True)
 
 
 # @api.route('/hello', methods=['POST', 'GET'])
@@ -105,7 +105,7 @@ def add_user():
 
 # 2) Ruta del Login
 
-@api.route('/login', methods=['POST'])      # agregar jwt autentification
+@api.route('/login', methods=['POST'])
 def handle_login():
     data = request.json
     email = data.get("email", None)
@@ -219,10 +219,10 @@ def update_password():
 @api.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
-    current_user_id = get_jwt_identity()
-    user = User.query.filter_by(email = current_user_id).first()
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id = user_id).first()
     
-    # user = User.query.get(current_user_id)
+    # user = User.query.get(user_id)
 
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
@@ -236,7 +236,7 @@ def get_profile():
         "avatar": user.avatar
     }), 200
 
-
+    
 
 # 7) Ruta del AboutUs
 

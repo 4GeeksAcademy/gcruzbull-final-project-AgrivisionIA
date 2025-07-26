@@ -58,7 +58,7 @@ export const Login = () => {
 
                 setTimeout(() => {
                     setIsLoading(false),
-                        navigate("/api/profile")
+                        navigate("/profile")
                 }, 1000);
 
             } else if (response.status === 400) {
