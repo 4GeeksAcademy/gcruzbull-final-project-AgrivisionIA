@@ -189,7 +189,7 @@ export const Profile = () => {
                             </ul>
                         ) : (
                             <p className="text-muted">
-                                No tienes granjas registradas.
+                                No tienes huertos registrados.
                             </p>
                         )}
                     </div>
@@ -221,7 +221,7 @@ export const Profile = () => {
                             />
                         </div>
                         <button className="btn btn-success" onClick={handleAddFarm}>
-                            Agregar Granja
+                            Agregar Campo
                         </button>
                     </div>
 
