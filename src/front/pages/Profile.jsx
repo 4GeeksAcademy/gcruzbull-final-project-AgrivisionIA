@@ -115,6 +115,38 @@ export const Profile = () => {
         }
     };
 
+
+    const handleDeleteFarm = async (farmId) => {
+        const confirmDelete = window.confirm("¿Estás seguro de que quieres eliminar esta granja?");
+        if (!confirmDelete) return;
+
+        const token = localStorage.getItem("token");
+        const urlBackend = import.meta.env.VITE_BACKEND_URL;
+
+        try {
+            const response = await fetch(`${urlBackend}/api/farms/${farmId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Huerto eliminado correctamente");
+                fetchUserProfile();             // Refresca los datos del perfil
+            } else {
+                alert(`Error al eliminar el huerto: ${data.error || response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error al eliminar el huerto:", error.message);
+            alert("Error de conexión al eliminar el huerto");
+        }
+    };
+
+
     return (
 
         <div className="container py-5">
@@ -179,22 +211,32 @@ export const Profile = () => {
                         </div>
                     </div>
 
-                    <div className="mb-3">
-                        <label className="fw-bold form-label">Tus Campos</label>
-                        {profileForm.farms.length > 0 ? (
+                    {profileForm.farms && profileForm.farms.length > 0 && (
+                        <div className="mt-4">
+                            <h5>Mis Campos</h5>
                             <ul className="list-group">
-                                {profileForm.farms.map((farm, index) => (
-                                    <li key={index} className="list-group-item">
-                                        <strong>{farm.farm_name}</strong> - {farm.farm_location}
+                                {profileForm.farms.map(farm => (
+                                    <li
+                                        key={farm.id}
+                                        className="list-group-item d-flex justify-content-between align-items-center"
+                                    >
+                                        <div>
+                                            <strong>{farm.farm_name}</strong> - {farm.farm_location}
+                                        </div>
+                                        <button
+                                            className="btn btn-outline-danger btn-sm rounded-circle"
+                                            style={{ width: "30px", height: "30px", padding: "0" }}
+                                            onClick={() => handleDeleteFarm(farm.id)}
+                                            title="Eliminar Huerto"
+                                            type="button"
+                                        >
+                                            <span style={{ fontWeight: "bold" }}>X</span>
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
-                        ) : (
-                            <p className="text-muted">
-                                No tienes huertos registrados.
-                            </p>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <div className="mb-3">
                         <label className="fw-bold form-label">Registrar Nuevo Campo</label>
@@ -222,7 +264,11 @@ export const Profile = () => {
                                 }
                             />
                         </div>
-                        <button className="btn btn-success" onClick={handleAddFarm}>
+                        <button 
+                            className="btn btn-success"
+                            type="button"
+                            onClick={handleAddFarm}
+                        >
                             Agregar Campo
                         </button>
                     </div>

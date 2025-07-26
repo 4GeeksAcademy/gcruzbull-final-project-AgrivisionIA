@@ -222,7 +222,7 @@ def get_profile():
     current_user_id = get_jwt_identity()
     user = User.query.filter_by(id = current_user_id).first()
     
-    # user = User.query.get(user_id)
+    # user = User.query.get(current_user_id)
 
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
@@ -237,8 +237,6 @@ def get_profile():
         "full_name": user.full_name,
         "email": user.email,
         "phone_number": user.phone_number,
-        # "farm_location": farm.farm_location if farm else "",
-        # "farm_name": farm.farm_name if farm else "",
         "avatar": user.avatar,
         "farms": farms              # Lista de diccionarios con farm_name, farm_location y user_id
     }), 200
