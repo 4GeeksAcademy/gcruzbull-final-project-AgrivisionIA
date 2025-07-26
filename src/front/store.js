@@ -1,18 +1,6 @@
 export const initialStore = () => {
   return{
     message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
-      },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
-      }
-    ],
     token: localStorage.getItem("token") || null,
   }
 };
@@ -40,13 +28,16 @@ export default function storeReducer(store, action = {}) {
 
       return {
         ...store,
-        planets: dashboard
+        dashboard: dashboard
       };
 
     case 'login':
+
+      const token = action.payload
+      
       return {
         ...store,
-        token: action.payload,
+        token: token,
       };
 
     case 'logout':

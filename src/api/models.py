@@ -8,7 +8,6 @@ class User(db.Model):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    # farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
     full_name: Mapped[str] = mapped_column(String(50), nullable = False)
     phone_number: Mapped[int] = mapped_column(Integer, nullable = False, default = "")
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -21,7 +20,6 @@ class User(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            # "farm_id": self.farm_id,
             "full_name": self.full_name,
             "email": self.email,
             "phone_number": self.phone_number,
@@ -53,8 +51,6 @@ class NDVI_images(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False) 
-    # farm_name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
-    # farm_location: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     ndvi_url: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
 
     ndvi_of_farm: Mapped["Farm"] = relationship(back_populates="ndvi_to_farm")
@@ -62,7 +58,6 @@ class NDVI_images(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            # "farm_id": self.farm_id,
             "ndvi_url": self.ndvi_url    
         }
 
@@ -71,8 +66,6 @@ class Aereal_images(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
-    # farm_name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
-    # farm_location: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     aereal_url: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
 
     aereal_of_farm: Mapped["Farm"] = relationship(back_populates="aereal_to_farm")
@@ -80,6 +73,5 @@ class Aereal_images(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            # "farm_id": self.farm_id,
             "aereal_url": self.aereal_url,    
         }

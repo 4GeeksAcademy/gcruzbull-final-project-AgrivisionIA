@@ -128,7 +128,7 @@ def handle_login():
                 return jsonify("Credentials failure"), 401
             
 
-# 3) Ruta del Dashboard
+# 3) Ruta del Dashboard:
 
 @api.route('/dashboard', methods=['GET'])
 @jwt_required()
@@ -256,7 +256,7 @@ def get_about_us():
 
 
 
-# [GET] /ndvi Listar todos los registros de url NDVI en la base de datos.
+# 9) [GET] /ndvi Listar todos los registros de url NDVI en la base de datos.
 
 @api.route('/ndvi', methods=['GET'])
 def get_ndvi_images():
@@ -270,3 +270,25 @@ def get_ndvi_images():
 def get_aereal_images():
     all_aereal = Aereal_images.query.all()
     return jsonify([item.serialize() for item in all_aereal]), 200 
+
+
+# 11) [GET] /users Listar todos los registros de usuario en la base de datos.
+
+@api.route('/users', methods=['GET'])
+def get_all_users():
+    users = User.query.all()
+    return jsonify([item.serialize() for item in users]), 200
+
+
+# 12) [GET] /user/<int:user_id> Muestra la información de un solo usuario según su id.
+
+@api.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_user():
+    user_id = get_jwt_identity()
+    single_user = User.query.get(user_id=user_id)
+
+    if single_user is None:
+        return jsonify({"error": "Person not found"}), 404
+    else:
+        return jsonify(single_user.serialize()), 200
