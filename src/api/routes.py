@@ -219,20 +219,23 @@ def update_password():
 @api.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
-    user_id = get_jwt_identity()
-    user = User.query.filter_by(id = user_id).first()
+    current_user_id = get_jwt_identity()
+    user = User.query.filter_by(id = current_user_id).first()
     
     # user = User.query.get(user_id)
 
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
+    
+    # Accede a la primera granja asociada
+    farm = user.farm_of_user[0] if user.farm_of_user else None
 
     return jsonify({
         "full_name": user.full_name,
         "email": user.email,
         "phone_number": user.phone_number,
-        "farm_location": user.farm_location,
-        "farm_name": user.farm_name,
+        "farm_location": farm.farm_location if farm else "",
+        "farm_name": farm.farm_name if farm else "",
         "avatar": user.avatar
     }), 200
 
