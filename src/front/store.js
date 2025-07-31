@@ -3,7 +3,9 @@ export const initialStore = () => {
     message: null,
     token: localStorage.getItem("token") || null,
     profileAvatar: null,
-    dashboard: null
+    dataAvatar: null,
+    dashboard: null,
+    userData: null
   }
 };
 
@@ -35,6 +37,8 @@ export default function storeReducer(store, action = {}) {
 
     case 'login':
 
+      // localStorage.setItem("token", action.payload);
+
       const token = action.payload
       
       return {
@@ -43,9 +47,13 @@ export default function storeReducer(store, action = {}) {
       };
 
     case 'logout':
+      // localStorage.removeItem("token");
       return {
         ...store,
         token: localStorage.getItem("token") || null,
+        profileAvatar: null,
+        dataAvatar: null,
+        dashboard: null
       };
 
     case 'ADD_AVATAR':
@@ -53,6 +61,19 @@ export default function storeReducer(store, action = {}) {
         ...store,
         profileAvatar: action.payload
       }
+    
+    case 'UPDATE_AVATAR':
+
+      return {
+        ...store,
+        profileAvatar: action.payload
+      }
+
+    case 'SET_USER_DATA':
+      return {
+        ...store,
+        userData: action.payload
+      };
 
     default:
       throw Error('Unknown action.');

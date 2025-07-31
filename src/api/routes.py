@@ -177,8 +177,7 @@ def reset_password_user():
     if user is None:
         return jsonify("User not found"), 404
     else:
-        create_token = create_access_token(
-            identity=body, expires_delta=expires_delta), 200
+        create_token = create_access_token(identity=body, expires_delta=expires_delta)
 
     message_url = f""" 
     <a href="{os.getenv("FRONTEND_URL")}/reset-password?token={create_token}">Recuperar contraseña</a>
@@ -294,8 +293,10 @@ def get_aereal_images():
 # 11) [GET] /users Listar todos los registros de usuario en la base de datos.
 
 @api.route('/users', methods=['GET'])
+@jwt_required()
 def get_all_users():
-    users = User.query.all()
+    user_id = get_jwt_identity()
+    users = User.query.all(user_id)
     return jsonify([item.serialize() for item in users]), 200
 
 
@@ -305,7 +306,7 @@ def get_all_users():
 @jwt_required()
 def get_user():
     user_id = get_jwt_identity()
-    single_user = User.query.get(user_id=user_id)
+    single_user = User.query.get(user_id)
 
     if single_user is None:
         return jsonify({"error": "Person not found"}), 404
@@ -362,36 +363,112 @@ def delete_farm(farm_id):
     return jsonify({"message": "Huerto eliminado correctamente"}), 200
 
 
-# 15) Ruta para recibir la imagen del Avatar
+# 15) Ruta para actualizar la imagen del Avatar
 
-@api.route('/upload-avatar', methods=['POST'])
+@api.route('/api/update-avatar', methods=['PUT'])
 @jwt_required()
-def upload_avatar():
-    if 'avatar' not in request.files:
+def update_avatar():
+
+    data_files = request.files      # Trae archivos del formulario
+
+    if 'avatar' not in data_files:
         return jsonify({"error": "No se encontró ninguna imagen"}), 400
 
-    file = request.files['avatar']
-
-    if file.filename == '':
+    image = data_files['avatar']
+    if image.filename == '':
         return jsonify({"error": "Nombre de archivo vacío"}), 400
 
     try:
-        # Subir la imagen a Cloudinary
-        result_image = uploader.upload(file)
-        avatar_url = result_image.get("secure_url")
-
-        # Actualizar el usuario
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-        user.avatar = avatar_url
+        user = User.query.filter_by(id=user_id).one_or_none()
 
+        if user is None:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        # Eliminar imagen anterior si tiene public_id
+        if user.public_id:
+            uploader.destroy(user.public_id)
+
+        # Subir nueva imagen
+        result_image = uploader.upload(image)
+
+        avatar_url = result_image.get("secure_url")
+        public_id = result_image.get("public_id")
+
+        # Actualizar usuario
+        user.avatar = avatar_url
+        user.public_id = public_id
         db.session.commit()
 
-        return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
+        print("Se subió imagen nueva:", avatar_url)
+
+        return jsonify({"avatar": avatar_url}), 200
 
     except Exception as error:
         db.session.rollback()
         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
+
+
+# @api.route('/update-avatar', methods=['PUT'])
+# @jwt_required()
+# def update_avatar():
+
+#     data_files = request.files      # Trae archivos del formulario
+
+#     if 'avatar' not in data_files:
+#         return jsonify({"error": "No se encontró ninguna imagen"}), 400
+ 
+#     image = data_files['avatar']
+
+#     if image.filename == '':
+#         return jsonify({"error": "Nombre de archivo vacío"}), 400
+
+#     try:
+#         # Subir la imagen a Cloudinary
+#         result_image = uploader.upload(image)
+#         avatar_url = result_image.get("secure_url")
+
+#         # Actualizar el usuario
+#         current_user_id = get_jwt_identity()
+#         user = User.query.filter_by(user_id=current_user_id).one_or_none()
+#         user.avatar = avatar_url
+
+#         db.session.commit()
+
+#         return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
+
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
+
+# @api.route('/upload-avatar', methods=['POST'])
+# @jwt_required()
+# def upload_avatar():
+#     if 'avatar' not in request.files:
+#         return jsonify({"error": "No se encontró ninguna imagen"}), 400
+
+#     file = request.files['avatar']
+
+#     if file.filename == '':
+#         return jsonify({"error": "Nombre de archivo vacío"}), 400
+
+#     try:
+#         # Subir la imagen a Cloudinary
+#         result_image = uploader.upload(file)
+#         avatar_url = result_image.get("secure_url")
+
+#         # Actualizar el usuario
+#         user_id = get_jwt_identity()
+#         user = User.query.get(user_id)
+#         user.avatar = avatar_url
+
+#         db.session.commit()
+
+#         return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
+
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
     
 
 @api.route('/get-avatar', methods=['GET'])

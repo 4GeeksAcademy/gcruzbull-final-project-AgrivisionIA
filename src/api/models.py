@@ -12,6 +12,7 @@ class User(db.Model):
     phone_number: Mapped[int] = mapped_column(Integer, nullable = False, default = "")
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     avatar: Mapped[str] = mapped_column(String(500), nullable=True)
+    public_id: Mapped[str] = mapped_column(String(255), nullable=True)
     password: Mapped[str] = mapped_column(String(200), nullable=False) 
     salt: Mapped[str] = mapped_column(String(80), nullable = False, default = 1 )
 
@@ -24,6 +25,7 @@ class User(db.Model):
             "email": self.email,
             "phone_number": self.phone_number,
             "avatar": self.avatar,
+            "public_id": self.public_id
             # do not serialize the password and salt, its a security breach
         }
     

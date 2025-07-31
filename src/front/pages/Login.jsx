@@ -46,6 +46,40 @@ export const Login = () => {
 
             const data = await response.json();
 
+            // if (response.ok) {
+            //     localStorage.setItem("token", data.token);
+
+            //     dispatch({
+            //         type: "login",
+            //         payload: data.token
+            //     });
+
+            //     // Obtener perfil de usuario con token
+            //     const response = await fetch(`${urlBackend}/api/profile`, {
+            //         method: "GET",
+            //         headers: {
+            //             "Authorization": `Bearer ${data.token}`
+            //         }
+            //     });
+
+            //     if (!response.ok) {
+            //         throw new Error("No se pudo obtener el perfil del usuario");
+            //     }
+
+            //     const profileData = await response.json();
+
+            //     dispatch({
+            //         type: "SET_USER_DATA",
+            //         payload: profileData
+            //     });
+
+            //     // Redirigir al perfil
+            //     setTimeout(() => {
+            //         setIsLoading(false);
+            //         navigate("/profile");
+            //     }, 1000);
+            // }
+
             if (response.ok) {
 
                 console.log("Login exitoso, token recibido:", data.token); // Debug
@@ -56,9 +90,24 @@ export const Login = () => {
                     payload: data.token
                 });
 
+                // Obtener perfil de usuario con token
+                const profileResponse = await fetch(`${urlBackend}/api/profile`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${data.token}`
+                    }
+                });
+
+                const profileData = await profileResponse.json();
+
+                dispatch({
+                    type: "SET_USER_DATA",
+                    payload: profileData
+                });
+
                 setTimeout(() => {
                     setIsLoading(false),
-                        navigate("/profile")
+                    navigate("/profile")
                 }, 1000);
 
             } else if (response.status === 400) {

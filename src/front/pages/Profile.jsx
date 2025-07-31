@@ -20,6 +20,8 @@ export const Profile = () => {
 
     const [selectedFile, setSelectedFile] = useState(null);
 
+    const [previewUrl, setPreviewUrl] = useState(null);
+
     const [newFarm, setNewFarm] = useState({
         farm_name: '',
         farm_location: ''
@@ -146,7 +148,7 @@ export const Profile = () => {
         }
     };
 
-    const handleUploadAvatar = async () => {
+    const updateAvatar = async () => {
         const token = localStorage.getItem("token");
         if (!selectedFile || !token) return;
 
@@ -156,29 +158,38 @@ export const Profile = () => {
         formData.append("avatar", selectedFile);
 
         try {
-            const response = await fetch(`${urlBackend}/api/upload-avatar`, {
-                method: "POST",
+            const response = await fetch(`${urlBackend}/api/update-avatar`, {
+                method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${token}`
                 },
                 body: formData,
             });
 
-            const data = await response.json();
+            const dataAvatar = await response.json();
 
-            if (response.ok) {
+            if (response.ok && dataAvatar.avatar) {
                 alert("Foto de perfil actualizada correctamente");
+                dispatch({ type: "UPDATE_AVATAR", payload: dataAvatar.avatar });
                 setSelectedFile(null);
                 fetchUserProfile();         // Refresca el perfil con la nueva imagen
+                dispatch({ type: "SET_USER_DATA", payload: { ...profileForm, avatar: dataAvatar.avatar } });
+
             } else {
                 alert(`Error al subir la imagen: ${data.error || response.statusText}`);
-            }
+            };
 
         } catch (error) {
             console.error("Error al subir la imagen:", error);
-            alert("Error al conectarse con el servidor");
+            alert("Error al cargar la imagen");
         }
     };
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
 
     const getAvatar = async () => {
         const urlBackend = import.meta.env.VITE_BACKEND_URL
@@ -214,7 +225,7 @@ export const Profile = () => {
                 {/* Avatar */}
                 <div className="col-sm-5 col-md-5" style={{ border: "1px solid red" }}>
                     <img
-                        src={profileForm.avatar ? profileForm.avatar : "https://avatar.iran.liara.run/public/4"}
+                        src={profileForm.avatar ? `${profileForm.avatar}?t=${Date.now()}` : "https://avatar.iran.liara.run/public/4"}
                         onError={(event) => event.target.src = "https://avatar.iran.liara.run/public/4"}
                         className="img-fluid rounded m-auto"
                         alt="Imagen de Perfil"
@@ -223,7 +234,7 @@ export const Profile = () => {
                     <form
                         onSubmit={(event) => {
                             event.preventDefault();
-                            handleUploadAvatar();
+                            updateAvatar();
                         }}
                     >
                         <div className="my-2">
@@ -232,8 +243,29 @@ export const Profile = () => {
                                 type="file"
                                 className="form-control-sm w-50"
                                 accept="image/*"
-                                onChange={(event) => setSelectedFile(event.target.files[0])}
+                                // onChange={(event) => setSelectedFile(event.target.files[0])}
+                                onChange={(event) => {
+                                    const file = event.target.files[0];
+                                    if (file) {
+                                        setSelectedFile(file);
+                                        const url = URL.createObjectURL(file);
+                                        setPreviewUrl(url);
+                                    }
+                                }}
                             />
+
+                            {/* Vista previa */}
+                            {previewUrl && (
+                                <div className="mt-2">
+                                    <p className="small text-muted">Vista previa:</p>
+                                    <img
+                                        src={previewUrl}
+                                        alt="Vista previa del avatar"
+                                        className="img-fluid rounded"
+                                        style={{ maxHeight: "200px", objectFit: "cover" }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div>

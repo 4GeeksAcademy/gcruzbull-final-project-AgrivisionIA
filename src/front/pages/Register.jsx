@@ -50,6 +50,11 @@ export const Register = () => {
         }
         setIsLoading(true);
 
+        if (!formData.full_name || !formData.email || !formData.phone_number || !formData.password) {
+            alert("Todos los campos son obligatorios");
+            return;
+        }
+
         try {
             console.log("Enviando datos de registro...");
             const urlBackend = import.meta.env.VITE_BACKEND_URL;
