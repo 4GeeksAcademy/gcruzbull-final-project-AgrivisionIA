@@ -1,15 +1,19 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, request, jsonify, url_for, Blueprint, current_app, send_from_directory
 from api.models import db, User, Farm, NDVI_images, Aereal_images
 from api.utils import generate_sitemap, APIException, send_email
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from base64 import b64encode
 import os
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
+import cloudinary
+import cloudinary.uploader as uploader
+from cloudinary.utils import cloudinary_url
 
 api = Blueprint('api', __name__)
 
@@ -60,37 +64,51 @@ def handle_check():
 
 @api.route('/register', methods=['POST'])
 def add_user():
-    data = request.json
+    data_form = request.form        # Trae datos del formulario
+    data_files = request.files      # Trae archivos del formulario
 
-    print(data)
+    print("form", data_form)
+    print("files", data_files)
 
-    full_name = data.get("full_name", None)
-    email = data.get("email", None)
-    phone_number = data.get("phone_number", None)
-    avatar = data.get("avatar", None)
-    password = data.get("password", None)
+    data = {
+        'full_name' : data_form.get("full_name", None),       # None es por si no conseguimos el nombre
+        'email' : data_form.get("email", None),
+        'phone_number' : data_form.get("phone_number", None),
+        'avatar' : data_files.get("avatar", None),              # En esta url se guarda el binario
+        'password' : data_form.get("password", None),
+        'public_id' : ''
+    }
+
+    print("avatar raw object:", data["avatar"])
 
     # Creación del usuario:
-    if any(field is None or field == "" for field in [full_name, email, phone_number, password]):
+    if any(field is None or field == "" for field in [data['full_name'], data['email'], data['phone_number'], data['password']]):
         return jsonify('Error: Fields full_name, email, phone_number, and password are mandatory'), 400
 
     # Verificar si el usuario ya existe
-    existing_user = User.query.filter_by(email=email).one_or_none()
+    existing_user = User.query.filter_by(email=data['email']).one_or_none()
     if existing_user:
         return jsonify({"error": "User already exists"}), 400
-
+    
     try:
         # Crear el salt antes de crear la contraseña
         salt = b64encode(os.urandom(32)).decode("utf-8")
 
+        # Subir imagen a Cloudinary
+
+        if data["avatar"] is not None:
+            result_image = uploader.upload(data["avatar"])      # funcion .upload(lo_que_quiero_subir)
+
+            data["avatar"] = result_image["secure_url"]
+
         # Crear el usuario
         user = User()
-        user.full_name = full_name
-        user.email = email
-        user.phone_number = phone_number
-        user.avatar = avatar
+        user.full_name = data['full_name']
+        user.email = data['email']
+        user.phone_number = data['phone_number']
+        user.avatar = data['avatar']
         user.salt = salt
-        user.password = create_password(password, salt)
+        user.password = create_password(data['password'], salt)
 
         # Transacción a la BD:
         db.session.add(user)
@@ -102,7 +120,6 @@ def add_user():
         db.session.rollback()
         return jsonify(f"Error: {error.args}"), 500
     
-
 # 2) Ruta del Login
 
 @api.route('/login', methods=['POST'])
@@ -227,11 +244,8 @@ def get_profile():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
     
-    # Serializamos todas las granjas asociadas al usuario
+    # Serializamos todas los huertos asociadas al usuario
     farms = [farm.serialize() for farm in user.farm_of_user]
-    
-    # Accede a la primera granja asociada
-    # farm = user.farm_of_user[0] if user.farm_of_user else None
 
     return jsonify({
         "full_name": user.full_name,
@@ -331,7 +345,7 @@ def create_farm():
     return jsonify({"message": "Registro de campo creado correctamente"}), 201
 
 
-# Eliminar huerto creado
+# 14) Eliminar huerto creado
 
 @api.route('/farms/<int:farm_id>', methods=['DELETE'])
 @jwt_required()
@@ -347,3 +361,56 @@ def delete_farm(farm_id):
 
     return jsonify({"message": "Huerto eliminado correctamente"}), 200
 
+
+# 15) Ruta para recibir la imagen del Avatar
+
+@api.route('/upload-avatar', methods=['POST'])
+@jwt_required()
+def upload_avatar():
+    if 'avatar' not in request.files:
+        return jsonify({"error": "No se encontró ninguna imagen"}), 400
+
+    file = request.files['avatar']
+
+    if file.filename == '':
+        return jsonify({"error": "Nombre de archivo vacío"}), 400
+
+    try:
+        # Subir la imagen a Cloudinary
+        result_image = uploader.upload(file)
+        avatar_url = result_image.get("secure_url")
+
+        # Actualizar el usuario
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        user.avatar = avatar_url
+
+        db.session.commit()
+
+        return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
+    
+
+@api.route('/get-avatar', methods=['GET'])
+@jwt_required()
+def get_avatar():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        return jsonify({"avatar": user.avatar}), 200
+
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener avatar: {error.args}"}), 500
+
+# from flask import 
+
+@api.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)

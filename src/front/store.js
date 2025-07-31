@@ -2,6 +2,8 @@ export const initialStore = () => {
   return{
     message: null,
     token: localStorage.getItem("token") || null,
+    profileAvatar: null,
+    dashboard: null
   }
 };
 
@@ -45,6 +47,12 @@ export default function storeReducer(store, action = {}) {
         ...store,
         token: localStorage.getItem("token") || null,
       };
+
+    case 'ADD_AVATAR':
+      return {
+        ...store,
+        profileAvatar: action.payload
+      }
 
     default:
       throw Error('Unknown action.');

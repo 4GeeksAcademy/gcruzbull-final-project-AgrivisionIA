@@ -6,8 +6,6 @@ const initialProfileState = {
     full_name: '',
     email: '',
     phone_number: '',
-    // farm_location: '',
-    // farm_name: '',
     farms: [],          // lista de campos    
     avatar: '',
 }
@@ -19,6 +17,8 @@ export const Profile = () => {
     const navigate = useNavigate()
 
     const [profileForm, setProfileForm] = useState(initialProfileState);
+
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const [newFarm, setNewFarm] = useState({
         farm_name: '',
@@ -146,6 +146,65 @@ export const Profile = () => {
         }
     };
 
+    const handleUploadAvatar = async () => {
+        const token = localStorage.getItem("token");
+        if (!selectedFile || !token) return;
+
+        const urlBackend = import.meta.env.VITE_BACKEND_URL;
+
+        const formData = new FormData();
+        formData.append("avatar", selectedFile);
+
+        try {
+            const response = await fetch(`${urlBackend}/api/upload-avatar`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Foto de perfil actualizada correctamente");
+                setSelectedFile(null);
+                fetchUserProfile();         // Refresca el perfil con la nueva imagen
+            } else {
+                alert(`Error al subir la imagen: ${data.error || response.statusText}`);
+            }
+
+        } catch (error) {
+            console.error("Error al subir la imagen:", error);
+            alert("Error al conectarse con el servidor");
+        }
+    };
+
+    const getAvatar = async () => {
+        const urlBackend = import.meta.env.VITE_BACKEND_URL
+
+        if (!urlBackend) throw new Error("VITE_BACKEND_URL is not defined in .env file")
+
+        const response = await fetch(`${urlBackend}/api/get-avatar`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${store.token}`,
+            },
+        });
+
+        const profileAvatar = await response.json()
+
+        if (response.ok && profileAvatar.avatar) {
+            dispatch({ type: "ADD_AVATAR", payload: profileAvatar.avatar });
+        }
+
+        return getAvatar
+    };
+
+    useEffect(() => {
+        getAvatar()
+    }, [])
+
 
     return (
 
@@ -153,17 +212,40 @@ export const Profile = () => {
             <h2 className="mb-4">Perfil</h2>
             <form className="row" style={{ border: "1px solid red" }}>
                 {/* Avatar */}
-                <div className="col-sm-4 col-md-4" style={{ border: "1px solid red" }}>
+                <div className="col-sm-5 col-md-5" style={{ border: "1px solid red" }}>
                     <img
-                        src={profileForm.avatar || "https://avatar.iran.liara.run/public/4"}
+                        src={profileForm.avatar ? profileForm.avatar : "https://avatar.iran.liara.run/public/4"}
                         onError={(event) => event.target.src = "https://avatar.iran.liara.run/public/4"}
                         className="img-fluid rounded m-auto"
                         alt="Imagen de Perfil"
                     />
+
+                    <form
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            handleUploadAvatar();
+                        }}
+                    >
+                        <div className="my-2">
+                            <label className="form-label"></label>
+                            <input
+                                type="file"
+                                className="form-control-sm w-50"
+                                accept="image/*"
+                                onChange={(event) => setSelectedFile(event.target.files[0])}
+                            />
+                        </div>
+
+                        <div>
+                            <button className="btn btn-primary btn-sm" type="submit">
+                                Subir Imagen
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 {/* Datos personales */}
-                <div className="col-sm-8 col-md-8" style={{ border: "1px solid red" }}>
+                <div className="col-sm-7 col-md-7" style={{ border: "1px solid red" }}>
                     {/* Parte texto */}
 
                     <div className="mb-3">
@@ -264,7 +346,7 @@ export const Profile = () => {
                                 }
                             />
                         </div>
-                        <button 
+                        <button
                             className="btn btn-success"
                             type="button"
                             onClick={handleAddFarm}

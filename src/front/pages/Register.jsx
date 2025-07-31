@@ -1,6 +1,6 @@
-import {useState} from "react"
+import { useState } from "react"
 import useGlobalReducer from "../hooks/useGlobalReducer"
-import {Link, useNavigate} from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 const initialStateRegister = {
     full_name: '',
@@ -13,17 +13,26 @@ const initialStateRegister = {
 
 export const Register = () => {
 
-    const {dispatch, store} = useGlobalReducer()
+    const { dispatch, store } = useGlobalReducer()
 
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState(initialStateRegister);    // es lo que voy a mandar en el body
 
     const [showPassword, setShowPassword] = useState(false);
-    
+
     const [isLoading, setIsLoading] = useState(false);
 
     const handleInputChange = (event) => {
+
+        if (event.target.name === "avatar") {
+            setFormData((currentFormData) => ({
+                ...currentFormData,
+                avatar: event.target.files[0],  // archivo, no string
+            }));
+            return;
+        }
+
         const { name, value, type, checked } = event.target;
         setFormData((currentFormData) => ({
             ...currentFormData,
@@ -39,33 +48,33 @@ export const Register = () => {
             alert('Debes aceptar los términos y condiciones');
             return;
         }
-
         setIsLoading(true);
 
         try {
             console.log("Enviando datos de registro...");
             const urlBackend = import.meta.env.VITE_BACKEND_URL;
 
-            // Preparar los datos (sin avatar por ahora para simplificar)
-            const dataToSend = {
-                full_name: formData.full_name,
-                email: formData.email,
-                phone_number: formData.phone_number,
-                password: formData.password,
-                avatar: formData.avatar || null // Por ahora enviar como string o null
-            };
+            const formDataToSend = new FormData();      // estoy creando un molde del formulario formData
+            formDataToSend.append("full_name", formData.full_name);     // append(key, value)
+            formDataToSend.append("email", formData.email);
+            formDataToSend.append("phone_number", formData.phone_number);
+            formDataToSend.append("password", formData.password);
+            // formDataToSend.append("avatar", formData.avatar);
+            if (formData.avatar) {
+                formDataToSend.append("avatar", formData.avatar);
+            }
 
             console.log("URL Backend:", urlBackend);
-            console.log("Datos a enviar:", dataToSend);
+            console.log("Datos a enviar:", formData);
 
             const response = await fetch(`${urlBackend}/api/register`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(dataToSend)
+                // headers: {
+                //     "Content-Type": "application/json"
+                // },
+                body: formDataToSend
             });
-            
+
             console.log("Response status es el siguiente:", response.status);
 
             const responseData = await response.json();
@@ -83,12 +92,12 @@ export const Register = () => {
                 alert(responseData.error || "Error al registrar el usuario, intente nuevamente");
             }
 
-            } catch (error) {
-                console.error("Error en la petición:", error);
-                alert("Error de conexión.");
-            } finally {
-                setIsLoading(false);
-            }
+        } catch (error) {
+            console.error("Error en la petición:", error);
+            alert("Error de conexión.");
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -151,15 +160,13 @@ export const Register = () => {
                                             id="btnAvatar"
                                             placeholder="Cargar Imágen"
                                             name="avatar"
-                                            // onChange={(event) => {
-                                            //     const file = event.target.files[0];
-                                            //     setFormData(previousFormData => ({
-                                            //     ...previousFormData,
-                                            //     avatar: file,
-                                            //     }));
-                                            // }}
-                                            onChange={handleInputChange}
-                                            value={formData.avatar}
+                                            onChange={(event) => {
+                                                const file = event.target.files[0];
+                                                setFormData(currentFormData => ({
+                                                    ...currentFormData,
+                                                    avatar: file,
+                                                }));
+                                            }}
                                         />
                                     </div>
 
@@ -214,13 +221,13 @@ export const Register = () => {
                                     {/* Aceptación de términos */}
                                     <div className="mb-3">
                                         <div className="form-check">
-                                            <input 
-                                                type="checkbox" 
-                                                className="form-check-input" 
+                                            <input
+                                                type="checkbox"
+                                                className="form-check-input"
                                                 id="acceptTerms"
                                                 name="acceptTerms"
                                                 checked={formData.acceptTerms}
-                                                onChange={handleInputChange}  
+                                                onChange={handleInputChange}
                                                 required
                                             />
                                             <label className="form-check-label" htmlFor="acceptTerms">

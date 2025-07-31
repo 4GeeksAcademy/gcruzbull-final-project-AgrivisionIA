@@ -11,7 +11,7 @@ class User(db.Model):
     full_name: Mapped[str] = mapped_column(String(50), nullable = False)
     phone_number: Mapped[int] = mapped_column(Integer, nullable = False, default = "")
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    avatar: Mapped[str] = mapped_column(String(120), unique=True, nullable=True)
+    avatar: Mapped[str] = mapped_column(String(500), nullable=True)
     password: Mapped[str] = mapped_column(String(200), nullable=False) 
     salt: Mapped[str] = mapped_column(String(80), nullable = False, default = 1 )
 
