@@ -67,8 +67,8 @@ export const Home = () => {
 			</div>
 
 			<div className="mx-auto container">
-				<div className="row">
-					{/* contenedor 2 */}
+				{/* <div className="row">
+					
 					<div className="col-md-12 col-lg-12 text-center my-4 py-5 border shadow rounded-4 ">
 						<div className="d-flex justify-content-center align-content-center">
 							<i className="p-4 pt-0 fa-2x fa-solid fa-file-invoice" style={{color: "#1f9bf9"}}></i>
@@ -96,7 +96,7 @@ export const Home = () => {
 						
 					</div>
 					
-				</div>
+				</div> */}
 
 				<div className="col-sm-12 col-md-12 text-center m-auto my-5">
 					<h1>¿Por qué elegir AgriVision AI?</h1>

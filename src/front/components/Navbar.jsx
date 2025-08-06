@@ -11,7 +11,7 @@ export const Navbar = () => {
 
 	return (
 		<nav className="navbar navbar-expand-md navbar-light bg-white border-bottom shadow-sm sticky-top">
-			<div className="container">
+			<div className="container w-100">
 				{/* Contenedor 1: Logo */}
 				<Link to="/" className="navbar-brand d-flex align-items-center">
 					<div className="p-2 bg-white me-2 d-flex align-items-center justify-content-center">

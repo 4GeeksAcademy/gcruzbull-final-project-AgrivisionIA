@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint, current_app, send_from_directory
-from api.models import db, User, Farm, NDVI_images, Aereal_images
+from api.models import db, User, Farm, NDVI_images, Aerial_images
 from api.utils import generate_sitemap, APIException, send_email
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -150,11 +150,11 @@ def handle_login():
 @api.route('/dashboard', methods=['GET'])
 @jwt_required()
 def get_dashboard():
-    user_id = get_jwt_identity()
+    current_user_id = get_jwt_identity()
     # body = request.get_json()
     # user = User.query.filter_by(user_id=user_id).one_or_none()
 
-    user = User.query.get(user_id)
+    user = User.query.get(current_user_id)
 
     if user is None:
         return jsonify(
@@ -270,27 +270,113 @@ def get_about_us():
 
 
 
-# 8) Ruta del
+# 8) Ruta [POST] ndvi
+
+@api.route('/post-ndvi', methods=['POST'])
+@jwt_required()
+def upload_ndvi_image():
+    current_user_id = get_jwt_identity()
+    farm_id = request.form.get("farm_id")
+    image_file = request.files.get("image")
+
+    user = User.query.filter_by(id = current_user_id).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not farm_id or not image_file:
+        return jsonify({"error": "farm_id and image are mandatory"}), 400
+
+    try:
+        # Subir a Cloudinary
+        result = uploader.upload(image_file, folder="ndvi_images")
+        ndvi_url = result["secure_url"]
+
+        # Guardar en la base de datos
+        new_ndvi = NDVI_images(farm_id=farm_id, ndvi_url=ndvi_url)
+        db.session.add(new_ndvi)
+        db.session.commit()
+
+        return jsonify({"message": "NDVI image uploaded successfully", "url": ndvi_url}), 201
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"error": f"Error uploading image: {error.args}"}), 500
 
 
+# 9) Ruta [POST] /aerial
 
-# 9) [GET] /ndvi Listar todos los registros de url NDVI en la base de datos.
+@api.route('/post-aerial', methods=['POST'])
+@jwt_required()
+def upload_aerial_image():
+    current_user_id = get_jwt_identity()
+    farm_id = request.form.get("farm_id")
+    image_file = request.files.get("image")
+
+    user = User.query.filter_by(id = current_user_id).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not farm_id or not image_file:
+        return jsonify({"error": "farm_id and image are mandatory"}), 400
+
+    try:
+        # Subir a Cloudinary
+        result = uploader.upload(image_file, folder="aerial_images")
+        aerial_url = result["secure_url"]
+
+        # Guardar en la base de datos
+        new_aerial = Aerial_images(farm_id=farm_id, aerial_url=aerial_url)
+        db.session.add(new_aerial)
+        db.session.commit()
+
+        return jsonify({"msg": "Aerial image uploaded successfuly", "url": aerial_url}), 201
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"error": f"Error uploading image: {error.args}"}), 500
+
+# 10) [GET] /ndvi Listar todos los registros de url NDVI en la base de datos.
 
 @api.route('/ndvi', methods=['GET'])
+@jwt_required()
 def get_ndvi_images():
+    current_user_id = get_jwt_identity()
     all_ndvi = NDVI_images.query.all()
+
+    user = User.query.filter_by(id = current_user_id).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     return jsonify([item.serialize() for item in all_ndvi]), 200
 
 
-# 10) [GET] /aereal Listar todos los registros de url aereos en la base de datos.
+# 11) [GET] /aerial Listar todos los registros de url aereos en la base de datos.
 
-@api.route('/aereal', methods=['GET'])
+@api.route('/aerial', methods=['GET'])
+@jwt_required()
 def get_aereal_images():
-    all_aereal = Aereal_images.query.all()
-    return jsonify([item.serialize() for item in all_aereal]), 200 
+    current_user_id = get_jwt_identity()
+    # all_aerial = Aerial_images.query.all()
+
+    user = User.query.filter_by(id = current_user_id).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # return jsonify([item.serialize() for item in all_aerial]), 200
 
 
-# 11) [GET] /users Listar todos los registros de usuario en la base de datos.
+    try:
+        all_aereal = Aerial_images.query.all()
+        return jsonify([item.serialize() for item in all_aereal]), 200
+    except Exception as error:
+        return jsonify({"error": {error.args}}), 500 
+
+
+# 12) [GET] /users Listar todos los registros de usuario en la base de datos.
 
 @api.route('/users', methods=['GET'])
 @jwt_required()
@@ -300,7 +386,7 @@ def get_all_users():
     return jsonify([item.serialize() for item in users]), 200
 
 
-# 12) [GET] /user/<int:user_id> Muestra la información de un solo usuario según su id.
+# 13) [GET] /user/<int:user_id> Muestra la información de un solo usuario según su id.
 
 @api.route('/users/<int:user_id>', methods=['GET'])
 @jwt_required()
@@ -313,7 +399,7 @@ def get_user():
     else:
         return jsonify(single_user.serialize()), 200
     
-# 13) [POST] de /farms para agregar campos
+# 14) [POST] de /farms para agregar campos
 
 @api.route('/farms', methods=['POST'])
 @jwt_required()
@@ -346,7 +432,7 @@ def create_farm():
     return jsonify({"message": "Registro de campo creado correctamente"}), 201
 
 
-# 14) Eliminar huerto creado
+# 15) Eliminar huerto creado
 
 @api.route('/farms/<int:farm_id>', methods=['DELETE'])
 @jwt_required()
@@ -363,7 +449,7 @@ def delete_farm(farm_id):
     return jsonify({"message": "Huerto eliminado correctamente"}), 200
 
 
-# 15) Ruta para actualizar la imagen del Avatar
+# 16) Ruta para actualizar la imagen del Avatar
 
 @api.route('/api/update-avatar', methods=['PUT'])
 @jwt_required()

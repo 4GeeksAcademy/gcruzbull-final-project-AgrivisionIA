@@ -65,6 +65,10 @@ export const Profile = () => {
             console.log("Datos del perfil:", data);
 
             setProfileForm(data);  // esto llenará todos los campos
+            dispatch({ 
+                type: "SET_USER_DATA", 
+                payload: data 
+            });
 
         } catch (error) {
             console.error("Error al conectarse con el backend:", error.message);
@@ -170,10 +174,16 @@ export const Profile = () => {
 
             if (response.ok && dataAvatar.avatar) {
                 alert("Foto de perfil actualizada correctamente");
-                dispatch({ type: "UPDATE_AVATAR", payload: dataAvatar.avatar });
+                dispatch({ 
+                    type: "UPDATE_AVATAR", 
+                    payload: dataAvatar.avatar 
+                });
                 setSelectedFile(null);
                 fetchUserProfile();         // Refresca el perfil con la nueva imagen
-                dispatch({ type: "SET_USER_DATA", payload: { ...profileForm, avatar: dataAvatar.avatar } });
+                dispatch({ 
+                    type: "SET_USER_DATA", 
+                    payload: { ...profileForm, avatar: dataAvatar.avatar } 
+                });
 
             } else {
                 alert(`Error al subir la imagen: ${data.error || response.statusText}`);
@@ -225,25 +235,19 @@ export const Profile = () => {
                 {/* Avatar */}
                 <div className="col-sm-5 col-md-5" style={{ border: "1px solid red" }}>
                     <img
-                        src={profileForm.avatar ? `${profileForm.avatar}?t=${Date.now()}` : "https://avatar.iran.liara.run/public/4"}
+                        src={profileForm.avatar ? `${profileForm.avatar}?timestamp=${Date.now()}` : "https://avatar.iran.liara.run/public/4"}
                         onError={(event) => event.target.src = "https://avatar.iran.liara.run/public/4"}
                         className="img-fluid rounded m-auto"
                         alt="Imagen de Perfil"
                     />
 
-                    <form
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            updateAvatar();
-                        }}
-                    >
+                    <>
                         <div className="my-2">
                             <label className="form-label"></label>
                             <input
                                 type="file"
                                 className="form-control-sm w-50"
                                 accept="image/*"
-                                // onChange={(event) => setSelectedFile(event.target.files[0])}
                                 onChange={(event) => {
                                     const file = event.target.files[0];
                                     if (file) {
@@ -269,11 +273,59 @@ export const Profile = () => {
                         </div>
 
                         <div>
+                            <button
+                                className="btn btn-primary btn-sm"
+                                type="button"
+                                onClick={updateAvatar}
+                            >
+                                Subir Imagen
+                            </button>
+                        </div>
+                    </>
+
+                    {/* <form
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            updateAvatar();
+                        }}
+                    >
+                        <div className="my-2">
+                            <label className="form-label"></label>
+                            <input
+                                type="file"
+                                className="form-control-sm w-50"
+                                accept="image/*"
+                                // onChange={(event) => setSelectedFile(event.target.files[0])}
+                                onChange={(event) => {
+                                    const file = event.target.files[0];
+                                    if (file) {
+                                        setSelectedFile(file);
+                                        const url = URL.createObjectURL(file);
+                                        setPreviewUrl(url);
+                                    }
+                                }}
+                            /> */}
+
+                            {/* Vista previa */}
+                            {/* {previewUrl && (
+                                <div className="mt-2">
+                                    <p className="small text-muted">Vista previa:</p>
+                                    <img
+                                        src={previewUrl}
+                                        alt="Vista previa del avatar"
+                                        className="img-fluid rounded"
+                                        style={{ maxHeight: "200px", objectFit: "cover" }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
                             <button className="btn btn-primary btn-sm" type="submit">
                                 Subir Imagen
                             </button>
                         </div>
-                    </form>
+                    </form> */}
                 </div>
 
                 {/* Datos personales */}

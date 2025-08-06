@@ -38,7 +38,7 @@ class Farm(db.Model):
     
     farm_to_user: Mapped["User"] = relationship(back_populates="farm_of_user")
     ndvi_to_farm: Mapped[list["NDVI_images"]] = relationship(back_populates="ndvi_of_farm")
-    aereal_to_farm: Mapped[list["Aereal_images"]] = relationship(back_populates="aereal_of_farm")
+    aerial_to_farm: Mapped[list["Aerial_images"]] = relationship(back_populates="aerial_of_farm")
 
     def serialize(self):
         return {
@@ -53,27 +53,29 @@ class NDVI_images(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False) 
-    ndvi_url: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    ndvi_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
 
     ndvi_of_farm: Mapped["Farm"] = relationship(back_populates="ndvi_to_farm")
 
     def serialize(self):
         return {
             "id": self.id,
+            "farm_id": self.farm_id,
             "ndvi_url": self.ndvi_url    
         }
 
-class Aereal_images(db.Model):
-    __tablename__ = "aereal_images"
+class Aerial_images(db.Model):
+    __tablename__ = "aerial_images"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
-    aereal_url: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    aerial_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
 
-    aereal_of_farm: Mapped["Farm"] = relationship(back_populates="aereal_to_farm")
+    aerial_of_farm: Mapped["Farm"] = relationship(back_populates="aerial_to_farm")
 
     def serialize(self):
         return {
             "id": self.id,
-            "aereal_url": self.aereal_url,    
+            "farm_id": self.farm_id,
+            "aerial_url": self.aerial_url,    
         }
