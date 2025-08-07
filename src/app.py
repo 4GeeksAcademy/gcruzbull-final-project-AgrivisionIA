@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db, User, Farm, NDVI_images, Aerial_images
+from api.models import db, User, Farm, Farm_images # NDVI_images, Aerial_images
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -25,6 +25,8 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 
 app = Flask(__name__)
+
+print("UPLOAD IMAGE ENDPOINT ACTIVE")
 
 # jwt configuration. Must be after app = Flask(__name__)
 # setup jwt_extended to generate token

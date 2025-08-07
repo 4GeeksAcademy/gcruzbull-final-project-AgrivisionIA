@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, relationship
+from datetime import datetime, timezone, UTC
 
 db = SQLAlchemy()
 
@@ -37,8 +38,9 @@ class Farm(db.Model):
     farm_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     
     farm_to_user: Mapped["User"] = relationship(back_populates="farm_of_user")
-    ndvi_to_farm: Mapped[list["NDVI_images"]] = relationship(back_populates="ndvi_of_farm")
-    aerial_to_farm: Mapped[list["Aerial_images"]] = relationship(back_populates="aerial_of_farm")
+    # ndvi_to_farm: Mapped[list["NDVI_images"]] = relationship(back_populates="ndvi_of_farm")
+    # aerial_to_farm: Mapped[list["Aerial_images"]] = relationship(back_populates="aerial_of_farm")
+    images: Mapped[list["Farm_images"]] = relationship(back_populates="images_table")
 
     def serialize(self):
         return {
@@ -48,34 +50,75 @@ class Farm(db.Model):
             "user_id": self.user_id,
         }
     
-class NDVI_images(db.Model):
-    __tablename__ = "ndvi_images"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False) 
-    ndvi_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
-
-    ndvi_of_farm: Mapped["Farm"] = relationship(back_populates="ndvi_to_farm")
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "farm_id": self.farm_id,
-            "ndvi_url": self.ndvi_url    
-        }
-
-class Aerial_images(db.Model):
-    __tablename__ = "aerial_images"
+class Farm_images(db.Model):
+    __tablename__ = "farm_images"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
-    aerial_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    image_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'NDVI' o 'AERIAL'
+    upload_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
+    file_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    uploaded_by: Mapped[str] = mapped_column(String(100), nullable=True)  # Email o username del usuario (opcional)
 
-    aerial_of_farm: Mapped["Farm"] = relationship(back_populates="aerial_to_farm")
+    images_table: Mapped["Farm"] = relationship(back_populates="images")
 
     def serialize(self):
         return {
             "id": self.id,
             "farm_id": self.farm_id,
-            "aerial_url": self.aerial_url,    
+            "image_url": self.image_url,
+            "image_type": self.image_type,
+            "upload_date": self.upload_date.isoformat() if self.upload_date else None,
+            "file_name": self.file_name,
+            "uploaded_by": self.uploaded_by,
         }
+    
+# class NDVI_images(db.Model):
+#     __tablename__ = "ndvi_images"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False) 
+#     ndvi_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
+
+#     file_name: Mapped[str] = mapped_column(String(255), nullable=True)
+#     upload_date: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+#     geo_location: Mapped[str] = mapped_column(String(255), nullable=True)
+
+#     ndvi_of_farm: Mapped["Farm"] = relationship(back_populates="ndvi_to_farm")
+
+#     def serialize(self):
+#         return {
+#             "id": self.id,
+#             "farm_id": self.farm_id,
+#             "ndvi_url": self.ndvi_url,
+
+#             "file_name": self.file_name,
+#             "upload_date": self.upload_date.isoformat() if self.upload_date else None,
+#             "geo_location": self.geo_location    
+#         }
+
+# class Aerial_images(db.Model):
+#     __tablename__ = "aerial_images"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
+#     aerial_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
+
+#     file_name: Mapped[str] = mapped_column(String(255), nullable=True)
+#     upload_date: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+#     geo_location: Mapped[str] = mapped_column(String(255), nullable=True)
+
+#     aerial_of_farm: Mapped["Farm"] = relationship(back_populates="aerial_to_farm")
+
+#     def serialize(self):
+#         return {
+#             "id": self.id,
+#             "farm_id": self.farm_id,
+#             "aerial_url": self.aerial_url,
+
+#             "file_name": self.file_name,
+#             "upload_date": self.upload_date.isoformat() if self.upload_date else None,
+#             "geo_location": self.geo_location    
+#         }
+    

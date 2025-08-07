@@ -10,6 +10,7 @@ export const Dashboard = () => {
 
     const [ndviImages, setNdviImages] = useState([]);
     const [aerialImages, setAerialImages] = useState([]);
+    const [images, setImages] = useState([])
 
     const [selectedFile, setSelectedFile] = useState(null);
 
@@ -58,24 +59,31 @@ export const Dashboard = () => {
         const urlBackend = import.meta.env.VITE_BACKEND_URL;
 
         try {
-            const [ndviResponse, aerialResponse] = await Promise.all([
-                fetch(`${urlBackend}/api/ndvi`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }),
-                fetch(`${urlBackend}/api/aerial`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-            ]);
+            const response = await fetch(`${urlBackend}/api/user-images`, {
+                headers: {
+                    'Authorization':  `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
 
-            const ndviData = await ndviResponse.json();
-            const aerialData = await aerialResponse.json();
+            if (!response.ok) {
+                const text = await response.text(); // ← Mostrar qué se devolvió
+                console.error("Respuesta inesperada:", text);
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
 
-            setNdviImages(ndviData);
-            setAerialImages(aerialData);
+            const data = await response.json();
+
+            
+
+            // Filtrar las imágenes por tipo
+            const ndvi = data.filter(image => image.image_type === 'NDVI');
+            const aerial = data.filter(image => image.image_type === 'AERIAL');
+
+            setNdviImages(ndvi);
+            setAerialImages(aerial);
+            setSelectedFile(data);
+
         } catch (error) {
             console.error("Error al cargar imágenes:", error);
         }
@@ -88,7 +96,8 @@ export const Dashboard = () => {
         try {
             const response = await fetch(`${urlBackend}/api/profile`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    "Content-Type": "application/json"
                 }
             });
 
@@ -116,19 +125,19 @@ export const Dashboard = () => {
         const urlBackend = import.meta.env.VITE_BACKEND_URL;
 
         if (!selectedFile || !selectedFarm) {
-            alert("Selecciona una imagen y un campo");
+            alert("Debes seleccionar una imagen y un campo");
             return;
         }
 
         const formData = new FormData();
-        formData.append("image", selectedFile);
+        formData.append("image_type", selectedType.toUpperCase()); // "NDVI" o "AERIAL"
+        formData.append("image_url", selectedFile);
         formData.append("farm_id", selectedFarm);
 
-        const endpoint = selectedType === "ndvi" ? "post-ndvi" : "post-aerial";
-
         try {
-            const response = await fetch(`${urlBackend}/api/${endpoint}`, {
+            const response = await fetch(`${urlBackend}/api/upload-image`, {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
@@ -145,7 +154,7 @@ export const Dashboard = () => {
                 alert("Error: " + data.error);
             }
         } catch (error) {
-            alert("Error de conexión");
+            alert("Error al subir la imagen");
             console.error(error);
         }
     };
@@ -232,7 +241,7 @@ export const Dashboard = () => {
                     <div className="row">
                         {ndviImages.map((image) => (
                             <div key={image.id} className="col-md-4 mb-3">
-                                <img src={image.ndvi_url} alt="NDVI" className="img-fluid rounded" />
+                                <img src={image.image_url} alt="NDVI" className="img-fluid rounded" />
                             </div>
                         ))}
                     </div>
@@ -241,43 +250,11 @@ export const Dashboard = () => {
                     <div className="row">
                         {aerialImages.map((image) => (
                             <div key={image.id} className="col-md-4 mb-3">
-                                <img src={image.aerial_url} alt="Aérea" className="img-fluid rounded" />
+                                <img src={image.image_url} alt="Aérea" className="img-fluid rounded" />
                             </div>
                         ))}
                     </div>
                 </div>
-
-
-
-                {/* <div className="row mx-auto">
-                    
-                    <div className="col-md-12 col-lg-12 text-center my-4 py-5 border shadow rounded-4 ">
-                        <div className="d-flex justify-content-center align-content-center">
-                            <i className="p-4 pt-0 fa-2x fa-solid fa-file-invoice" style={{ color: "#1f9bf9" }}></i>
-                            <h3>Resultados del Análisis</h3>
-                        </div>
-                        <p className="mb-3">
-                            Sube una imagen para ver el análisis detallado del cultivo
-                        </p>
-                        <div>
-                            <label htmlFor="btnUpload" className="form-label d-flex">
-                                <i className="fs-4 m-2 fa-solid fa-cloud-arrow-up" style={{ color: "#3fabfd" }}></i>
-                                <h5 className="m-2">Subir Imagen</h5>
-                            </label>
-                            <input
-                                type="file"
-                                className="form-control border-primary m-auto"
-                                id="btnUpload"
-                                placeholder="Cargar Imágen"
-                                name="uploadImage"
-                            />
-                        </div>
-
-                    </div>
-
-                </div> */}
-
-                
             </div>
         </div>
     )

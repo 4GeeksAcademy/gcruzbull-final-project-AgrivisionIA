@@ -231,9 +231,9 @@ export const Profile = () => {
 
         <div className="container py-5">
             <h2 className="mb-4">Perfil</h2>
-            <form className="row" style={{ border: "1px solid red" }}>
+            <form className="row">
                 {/* Avatar */}
-                <div className="col-sm-5 col-md-5" style={{ border: "1px solid red" }}>
+                <div className="col-sm-5 col-md-5">
                     <img
                         src={profileForm.avatar ? `${profileForm.avatar}?timestamp=${Date.now()}` : "https://avatar.iran.liara.run/public/4"}
                         onError={(event) => event.target.src = "https://avatar.iran.liara.run/public/4"}
@@ -329,7 +329,7 @@ export const Profile = () => {
                 </div>
 
                 {/* Datos personales */}
-                <div className="col-sm-7 col-md-7" style={{ border: "1px solid red" }}>
+                <div className="col-sm-7 col-md-7">
                     {/* Parte texto */}
 
                     <div className="mb-3">
@@ -404,7 +404,7 @@ export const Profile = () => {
                         </div>
                     )}
 
-                    <div className="mb-3">
+                    <div className="my-3">
                         <label className="fw-bold form-label">Registrar Nuevo Campo</label>
                         <div className="input-group mb-2">
                             <input
@@ -438,43 +438,11 @@ export const Profile = () => {
                             Agregar Campo
                         </button>
                     </div>
-
-
-
-                    {/*<div className="mb-3">
-                        <label htmlFor="farmLocation" className="fw-bold form-label">Ubicación del campo</label>
-                        <div className="input-group">
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="farmLocation"
-                                placeholder="Ubicación"
-                                name="farm_location"
-                                value={profileForm.farm_location}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mb-3">
-                        <label htmlFor="farmName" className="fw-bold form-label">Nombre del campo</label>
-                        <div className="input-group">
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="farmName"
-                                placeholder="Nombre campo"
-                                name="farm_name"
-                                value={profileForm.farm_name}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                    </div>*/}
                 </div>
 
                 {/* botones */}
 
-                <div className="col-md-12">
+                {/* <div className="col-md-12">
                     <ul className="list-unstyled">
                         <li className="my-2">
                             <button
@@ -498,7 +466,7 @@ export const Profile = () => {
                                     Registro Nutricional
                                 </Link>
                             </button>
-                        </li>
+                        </li> */}
 
                         {/* <li className="my-2">
                                 <button
@@ -512,7 +480,7 @@ export const Profile = () => {
                                 </button>
                             </li> */}
 
-                        <li className="my-2">
+                        {/* <li className="my-2">
                             <button
                                 type="submit"
                                 className="btn btn-success "
@@ -525,7 +493,7 @@ export const Profile = () => {
                         </li>
                     </ul>
 
-                </div>
+                </div> */}
             </form>
         </div>
     )

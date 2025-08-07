@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint, current_app, send_from_directory
-from api.models import db, User, Farm, NDVI_images, Aerial_images
+from api.models import db, User, Farm, Farm_images # NDVI_images, Aerial_images
 from api.utils import generate_sitemap, APIException, send_email
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from base64 import b64encode
 import os
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 import cloudinary
 import cloudinary.uploader as uploader
 from cloudinary.utils import cloudinary_url
@@ -138,7 +138,7 @@ def handle_login():
             return jsonify("Credentials are wrong, try again"), 400
         else:
             if check_password(user.password, password, user.salt):
-                token = create_access_token(identity=str(user.id))
+                token = create_access_token(identity=str(user.id), expires_delta=expires_delta)
                 return jsonify({
                     "token": token}), 200
             else:
@@ -268,112 +268,343 @@ def get_about_us():
         }
     }), 200
 
+# 8) Version nueva de imagenes unificadas
+
+# subir imagen (ndvi o aerea)
+@api.route('/upload-image', methods=['POST'])
+@jwt_required()
+def upload_image():
+    data_form = request.form        # Trae datos del formulario
+    data_files = request.files      # Trae archivos del formulario
+
+    print(data_files)
+
+    try:
+        current_user_id = get_jwt_identity()
+        farm_id = data_form.get("farm_id")
+        image_type = data_form.get("image_type")  # 'ndvi' o 'aerial'
+        image_file = data_files.get("image_url")  # imagen
+
+        if image_file is None:
+            return jsonify({"error": "No se recibió ningún archivo de imagen"}), 400
+
+        
+        if not farm_id or not image_type or not image_file:
+            return jsonify({"error": "Faltan datos requeridos"}), 400
+        
+        user = User.query.filter_by(id = current_user_id).first()
+        
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+        
+        # Subir imagen a Cloudinary
+        upload_result = uploader.upload(image_file, folder="dron_images")
+
+        # Obtener la URL segura
+        image_url = upload_result.get('secure_url')
+
+        # file_name = image_file.filename
+
+        file_name=upload_result.get("original_filename"),
+        uploaded_by=str(user.email)  # o email si lo tienes
+
+        # Crear instancia del modelo
+        new_image = Farm_images(
+            farm_id=farm_id,
+            image_type=image_type,
+            image_url=image_url,
+            upload_date=datetime.now(timezone.utc),
+            file_name = file_name,
+            uploaded_by = uploaded_by
+        )
+        db.session.add(new_image)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Image uploaded successfully", 
+            "url": image_url,
+            "data": new_image.serialize()
+        }), 201
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"message": "Error al subir imagen", "error": {error.args}}), 500
+
+# obtener imagenes del usuario autenticado
+@api.route('/user-images', methods=['GET'])
+@jwt_required()
+def get_user_images():
+    current_user_id = get_jwt_identity()
+
+    user = User.query.filter_by(id = current_user_id).first()
+    
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    farms = Farm.query.filter_by(user_id=current_user_id).all()
+    farm_ids = [farm.id for farm in farms]
+
+    images = Farm_images.query.filter(Farm_images.farm_id.in_(farm_ids)).all()  # La función in_() se usa para filtrar por varios valores (como un WHERE ... IN (...) en SQL). SELECT * FROM farm_images WHERE farm_id IN (1, 2, 5);....Este SQL dice: dame todas las imágenes cuya farm_id esté en la lista [1, 2, 5].
+
+
+    result = [{
+        "id": images.id,
+        "farm_id": images.farm_id,
+        "image_url": images.image_url,
+        "image_type": images.image_type,
+        "upload_date": images.upload_date.isoformat() if images.upload_date else None
+    } for images in images]
+
+    return jsonify(result), 200
+
+# obtener todas las imagenes de un campo
+@api.route('/api/user-images/<int:farm_id>', methods=['GET'])
+@jwt_required()
+def get_farm_images(farm_id):
+    try:
+        images = Farm_images.query.filter_by(farm_id=farm_id).all()
+        return jsonify([img.serialize() for img in images]), 200
+    except Exception as error:
+        return jsonify({"Error": "Error al obtener imágenes", "error": {error.args}}), 500
+
+
+
+# eliminar una imagen
+@api.route('/delete-image/<int:image_id>', methods=['DELETE'])
+@jwt_required()
+def delete_image(image_id):
+    current_user_id = get_jwt_identity()
+    image = Farm_images.query.get(image_id)
+
+    user = User.query.filter_by(id = current_user_id).first()
+    
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    if not image:
+        return jsonify({"error": "Imagen no encontrada"}), 404
+
+    # Verifica que la imagen pertenezca a una finca del usuario
+    farm = Farm.query.get(image.farm_id)
+
+    if not farm or farm.user_id != current_user_id:
+        return jsonify({"message": "No autorizado para eliminar esta imagen"}), 403
+
+    db.session.delete(image)
+    db.session.commit()
+
+    return jsonify({"message": "Imagen eliminada exitosamente"}), 200
+
+
+#obtener imagen especifica
+@api.route('/get-image/<int:image_id>', methods=['GET'])
+@jwt_required()
+def get_image(image_id):
+    current_user_id = get_jwt_identity()
+    image = Farm_images.query.get(image_id)
+
+    if not image:
+        return jsonify({"message": "Imagen no encontrada"}), 404
+
+    farm = Farm.query.get(image.farm_id)
+    if not farm or farm.user_id != current_user_id:
+        return jsonify({"message": "No autorizado"}), 403
+
+    return jsonify({
+        "id": image.id,
+        "farm_id": image.farm_id,
+        "image_url": image.image_url,
+        "image_type": image.image_type,
+        "upload_date": image.upload_date.isoformat() if image.upload_date else None
+    }), 200
 
 
 # 8) Ruta [POST] ndvi
 
-@api.route('/post-ndvi', methods=['POST'])
-@jwt_required()
-def upload_ndvi_image():
-    current_user_id = get_jwt_identity()
-    farm_id = request.form.get("farm_id")
-    image_file = request.files.get("image")
 
-    user = User.query.filter_by(id = current_user_id).first()
+#version 2
+# @api.route('/post-ndvi', methods=['POST'])
+# @jwt_required()
+# def upload_ndvi_image():
+#     current_user_id = get_jwt_identity()
+#     farm_id = request.form.get("farm_id")
+#     image_file = request.files.get("image")
+#     ndvi_geo_location = request.form.get("geo_location")
 
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+#     if not farm_id or not image_file:
+#         return jsonify({"error": "farm_id and image are mandatory"}), 400
 
-    if not farm_id or not image_file:
-        return jsonify({"error": "farm_id and image are mandatory"}), 400
+#     try:
+#         # Subir a Cloudinary
+#         result = uploader.upload(image_file, folder="ndvi_images")
+#         ndvi_url = result["secure_url"]
+#         ndvi_file_name = image_file.filename
 
-    try:
-        # Subir a Cloudinary
-        result = uploader.upload(image_file, folder="ndvi_images")
-        ndvi_url = result["secure_url"]
+#         # Guardar en la base de datos
+#         new_ndvi = NDVI_images(
+#             farm_id=farm_id,
+#             ndvi_url=ndvi_url,
+#             file_name=ndvi_file_name,
+#             geo_location=ndvi_geo_location
+#         )
+#         db.session.add(new_ndvi)
+#         db.session.commit()
 
-        # Guardar en la base de datos
-        new_ndvi = NDVI_images(farm_id=farm_id, ndvi_url=ndvi_url)
-        db.session.add(new_ndvi)
-        db.session.commit()
+#         return jsonify({
+#             "message": "NDVI image uploaded successfully",
+#             "url": ndvi_url,
+#             "data": new_ndvi.serialize()
+#         }), 201
 
-        return jsonify({"message": "NDVI image uploaded successfully", "url": ndvi_url}), 201
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"error": f"Error uploading image: {error.args}"}), 500
 
-    except Exception as error:
-        db.session.rollback()
-        return jsonify({"error": f"Error uploading image: {error.args}"}), 500
+#version 1
+# @api.route('/post-ndvi', methods=['POST'])
+# @jwt_required()
+# def upload_ndvi_image():
+#     current_user_id = get_jwt_identity()
+#     farm_id = request.form.get("farm_id")
+#     image_file = request.files.get("image")
+
+#     user = User.query.filter_by(id = current_user_id).first()
+
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
+
+#     if not farm_id or not image_file:
+#         return jsonify({"error": "farm_id and image are mandatory"}), 400
+
+#     try:
+#         # Subir a Cloudinary
+#         result = uploader.upload(image_file, folder="ndvi_images")
+#         ndvi_url = result["secure_url"]
+
+#         # Guardar en la base de datos
+#         new_ndvi = NDVI_images(farm_id=farm_id, ndvi_url=ndvi_url)
+#         db.session.add(new_ndvi)
+#         db.session.commit()
+
+#         return jsonify({"message": "NDVI image uploaded successfully", "url": ndvi_url}), 201
+
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"error": f"Error uploading image: {error.args}"}), 500
 
 
 # 9) Ruta [POST] /aerial
 
-@api.route('/post-aerial', methods=['POST'])
-@jwt_required()
-def upload_aerial_image():
-    current_user_id = get_jwt_identity()
-    farm_id = request.form.get("farm_id")
-    image_file = request.files.get("image")
 
-    user = User.query.filter_by(id = current_user_id).first()
+# version 1
+# @api.route('/post-aerial', methods=['POST'])
+# @jwt_required()
+# def upload_aerial_image():
+#     current_user_id = get_jwt_identity()
+#     farm_id = request.form.get("farm_id")
+#     image_file = request.files.get("image")
 
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+#     user = User.query.filter_by(id = current_user_id).first()
 
-    if not farm_id or not image_file:
-        return jsonify({"error": "farm_id and image are mandatory"}), 400
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
 
-    try:
-        # Subir a Cloudinary
-        result = uploader.upload(image_file, folder="aerial_images")
-        aerial_url = result["secure_url"]
+#     if not farm_id or not image_file:
+#         return jsonify({"error": "farm_id and image are mandatory"}), 400
 
-        # Guardar en la base de datos
-        new_aerial = Aerial_images(farm_id=farm_id, aerial_url=aerial_url)
-        db.session.add(new_aerial)
-        db.session.commit()
+#     try:
+#         # Subir a Cloudinary
+#         result = uploader.upload(image_file, folder="aerial_images")
+#         aerial_url = result["secure_url"]
 
-        return jsonify({"msg": "Aerial image uploaded successfuly", "url": aerial_url}), 201
+#         # Guardar en la base de datos
+#         new_aerial = Aerial_images(farm_id=farm_id, aerial_url=aerial_url)
+#         db.session.add(new_aerial)
+#         db.session.commit()
 
-    except Exception as error:
-        db.session.rollback()
-        return jsonify({"error": f"Error uploading image: {error.args}"}), 500
+#         return jsonify({"msg": "Aerial image uploaded successfuly", "url": aerial_url}), 201
+
+#     except Exception as error:
+#         db.session.rollback()
+#         return jsonify({"error": f"Error uploading image: {error.args}"}), 500
 
 # 10) [GET] /ndvi Listar todos los registros de url NDVI en la base de datos.
 
-@api.route('/ndvi', methods=['GET'])
-@jwt_required()
-def get_ndvi_images():
-    current_user_id = get_jwt_identity()
-    all_ndvi = NDVI_images.query.all()
 
-    user = User.query.filter_by(id = current_user_id).first()
+#version 2
+# @api.route('/ndvi', methods=['GET'])
+# @jwt_required()
+# def get_ndvi_images():
+#     current_user_id = get_jwt_identity()
 
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+#     # Obtener usuario
+#     user = User.query.get(current_user_id)
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
 
-    return jsonify([item.serialize() for item in all_ndvi]), 200
+#     # Obtener todos los campos del usuario
+#     farms = Farm.query.filter_by(user_id=current_user_id).all()
+#     farm_ids = [farm.id for farm in farms]
+
+#     # Filtrar imágenes NDVI solo de esos campos
+#     ndvi_images = NDVI_images.query.filter(NDVI_images.farm_id.in_(farm_ids)).all()
+
+#     return jsonify([img.serialize() for img in ndvi_images]), 200
+
+#version 1
+# @api.route('/ndvi', methods=['GET'])
+# @jwt_required()
+# def get_ndvi_images():
+#     current_user_id = get_jwt_identity()
+#     all_ndvi = NDVI_images.query.all()
+
+#     user = User.query.filter_by(id = current_user_id).first()
+
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
+
+#     return jsonify([item.serialize() for item in all_ndvi]), 200
 
 
 # 11) [GET] /aerial Listar todos los registros de url aereos en la base de datos.
 
-@api.route('/aerial', methods=['GET'])
-@jwt_required()
-def get_aereal_images():
-    current_user_id = get_jwt_identity()
-    # all_aerial = Aerial_images.query.all()
 
-    user = User.query.filter_by(id = current_user_id).first()
+#version 2
+# @api.route('/aerial', methods=['GET'])
+# @jwt_required()
+# def get_aereal_images():
+#     current_user_id = get_jwt_identity()
 
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+#     user = User.query.get(current_user_id)
+#     if not user:
+#         return jsonify({"error": "User not found"}), 404
 
-    # return jsonify([item.serialize() for item in all_aerial]), 200
+#     # Obtener todos los campos del usuario
+#     farms = Farm.query.filter_by(user_id=current_user_id).all()
+#     farm_ids = [farm.id for farm in farms]
 
+#     # Filtrar imágenes aéreas solo de esos campos
+#     aerial_images = Aerial_images.query.filter(Aerial_images.farm_id.in_(farm_ids)).all()
 
-    try:
-        all_aereal = Aerial_images.query.all()
-        return jsonify([item.serialize() for item in all_aereal]), 200
-    except Exception as error:
-        return jsonify({"error": {error.args}}), 500 
+#     return jsonify([img.serialize() for img in aerial_images]), 200
+
+# version 1
+# @api.route('/aerial', methods=['GET'])
+# @jwt_required()
+# def get_aereal_images():
+#     current_user_id = get_jwt_identity()
+#     all_aereal = Aerial_images.query.all()
+
+#     user = User.query.filter_by(id = current_user_id).first()
+    
+#     try:
+#         if not user:
+#             return jsonify({"error": "User not found"}), 404
+        
+#         return jsonify([item.serialize() for item in all_aereal]), 200
+    
+#     except Exception as error:
+#         return jsonify({"error": {error.args}}), 500 
 
 
 # 12) [GET] /users Listar todos los registros de usuario en la base de datos.
@@ -448,8 +679,39 @@ def delete_farm(farm_id):
 
     return jsonify({"message": "Huerto eliminado correctamente"}), 200
 
+# 16) Ruta para filtrar imágenes NDVI por farm_id: recibe un farm_id como parámetro y devuelve todas las imágenes NDVI asociadas a ese campo.
 
-# 16) Ruta para actualizar la imagen del Avatar
+@api.route('/api/ndvi-images/<int:farm_id>', methods=['GET'])
+@jwt_required()
+def get_ndvi_images_by_farm(farm_id):
+    from models import NDVI_images
+
+    current_user_id = get_jwt_identity()
+
+    images = NDVI_images.query.filter_by(id= farm_id, user_id = current_user_id).all()
+
+    if not images:
+        return jsonify({"message": "No NDVI images found for this farm"}), 404
+
+    return jsonify([img.serialize() for img in images]), 200
+
+# 17) Ruta para filtrar imágenes aéreas por farm_id: recibe un farm_id como parámetro y devuelve todas las imágenes aéreas asociadas a ese campo.
+
+@api.route('/api/aerial-images/<int:farm_id>', methods=['GET'])
+@jwt_required()
+def get_aerial_images_by_farm(farm_id):
+    from models import Aerial_images
+
+    current_user_id = get_jwt_identity()
+
+    images = Aerial_images.query.filter_by(id=farm_id, user_id = current_user_id).all()
+
+    if not images:
+        return jsonify({"message": "No aerial images found for this farm"}), 404
+
+    return jsonify([img.serialize() for img in images]), 200
+
+# ) Ruta para actualizar la imagen del Avatar
 
 @api.route('/api/update-avatar', methods=['PUT'])
 @jwt_required()
