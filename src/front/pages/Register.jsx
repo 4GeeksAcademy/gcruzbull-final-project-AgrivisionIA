@@ -74,9 +74,6 @@ export const Register = () => {
 
             const response = await fetch(`${urlBackend}/api/register`, {
                 method: "POST",
-                // headers: {
-                //     "Content-Type": "application/json"
-                // },
                 body: formDataToSend
             });
 

@@ -46,40 +46,6 @@ export const Login = () => {
 
             const data = await response.json();
 
-            // if (response.ok) {
-            //     localStorage.setItem("token", data.token);
-
-            //     dispatch({
-            //         type: "login",
-            //         payload: data.token
-            //     });
-
-            //     // Obtener perfil de usuario con token
-            //     const response = await fetch(`${urlBackend}/api/profile`, {
-            //         method: "GET",
-            //         headers: {
-            //             "Authorization": `Bearer ${data.token}`
-            //         }
-            //     });
-
-            //     if (!response.ok) {
-            //         throw new Error("No se pudo obtener el perfil del usuario");
-            //     }
-
-            //     const profileData = await response.json();
-
-            //     dispatch({
-            //         type: "SET_USER_DATA",
-            //         payload: profileData
-            //     });
-
-            //     // Redirigir al perfil
-            //     setTimeout(() => {
-            //         setIsLoading(false);
-            //         navigate("/profile");
-            //     }, 1000);
-            // }
-
             if (response.ok) {
 
                 console.log("Login exitoso, token recibido:", data.token); // Debug
@@ -154,7 +120,6 @@ export const Login = () => {
                                                 name="email"
                                                 value={userForm.email}
                                                 onChange={handleChange}
-                                                // onChange={(event) => setEmail(event.target.value)}
                                                 required
                                             />
                                         </div>
@@ -178,7 +143,6 @@ export const Login = () => {
                                                 name="password"
                                                 value={userForm.password}
                                                 onChange={handleChange}
-                                                // onChange={(event) => setPassword(event.target.value)}
                                                 required
                                             />
                                             <button

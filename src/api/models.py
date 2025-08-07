@@ -38,8 +38,6 @@ class Farm(db.Model):
     farm_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     
     farm_to_user: Mapped["User"] = relationship(back_populates="farm_of_user")
-    # ndvi_to_farm: Mapped[list["NDVI_images"]] = relationship(back_populates="ndvi_of_farm")
-    # aerial_to_farm: Mapped[list["Aerial_images"]] = relationship(back_populates="aerial_of_farm")
     images: Mapped[list["Farm_images"]] = relationship(back_populates="images_table")
 
     def serialize(self):
@@ -73,52 +71,3 @@ class Farm_images(db.Model):
             "file_name": self.file_name,
             "uploaded_by": self.uploaded_by,
         }
-    
-# class NDVI_images(db.Model):
-#     __tablename__ = "ndvi_images"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False) 
-#     ndvi_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
-
-#     file_name: Mapped[str] = mapped_column(String(255), nullable=True)
-#     upload_date: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-#     geo_location: Mapped[str] = mapped_column(String(255), nullable=True)
-
-#     ndvi_of_farm: Mapped["Farm"] = relationship(back_populates="ndvi_to_farm")
-
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "farm_id": self.farm_id,
-#             "ndvi_url": self.ndvi_url,
-
-#             "file_name": self.file_name,
-#             "upload_date": self.upload_date.isoformat() if self.upload_date else None,
-#             "geo_location": self.geo_location    
-#         }
-
-# class Aerial_images(db.Model):
-#     __tablename__ = "aerial_images"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
-#     aerial_url: Mapped[str] = mapped_column(String(500), unique=True, nullable=False)
-
-#     file_name: Mapped[str] = mapped_column(String(255), nullable=True)
-#     upload_date: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
-#     geo_location: Mapped[str] = mapped_column(String(255), nullable=True)
-
-#     aerial_of_farm: Mapped["Farm"] = relationship(back_populates="aerial_to_farm")
-
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "farm_id": self.farm_id,
-#             "aerial_url": self.aerial_url,
-
-#             "file_name": self.file_name,
-#             "upload_date": self.upload_date.isoformat() if self.upload_date else None,
-#             "geo_location": self.geo_location    
-#         }
-    

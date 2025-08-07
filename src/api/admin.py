@@ -1,6 +1,6 @@
 import os
 from flask_admin import Admin
-from .models import db, User, Farm, Farm_images # NDVI_images, Aerial_images
+from .models import db, User, Farm, Farm_images
 from flask_admin.contrib.sqla import ModelView
 
 def setup_admin(app):
@@ -12,8 +12,6 @@ def setup_admin(app):
     admin.add_view(ModelView(User, db.session))
     admin.add_view(ModelView(Farm, db.session))
     admin.add_view(ModelView(Farm_images, db.session))
-    # admin.add_view(ModelView(Aerial_images, db.session))
-    # admin.add_view(ModelView(NDVI_images, db.session))
 
     # You can duplicate that line to add mew models
     # admin.add_view(ModelView(YourModelName, db.session))

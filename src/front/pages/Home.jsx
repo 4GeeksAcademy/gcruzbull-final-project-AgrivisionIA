@@ -67,37 +67,6 @@ export const Home = () => {
 			</div>
 
 			<div className="mx-auto container">
-				{/* <div className="row">
-					
-					<div className="col-md-12 col-lg-12 text-center my-4 py-5 border shadow rounded-4 ">
-						<div className="d-flex justify-content-center align-content-center">
-							<i className="p-4 pt-0 fa-2x fa-solid fa-file-invoice" style={{color: "#1f9bf9"}}></i>
-							<h3>Resultados del Análisis</h3>
-						</div>
-						<p className="mb-3">
-							Sube una imagen para ver el análisis detallado del cultivo
-						</p>
-						<div>
-							<label htmlFor="btnUpload" className="form-label d-flex">
-								<i className="fs-4 m-2 fa-solid fa-cloud-arrow-up" style={{color: "#3fabfd"}}></i>
-								<h5 className="m-2">Subir Imagen</h5>
-							</label>
-                            <input
-                                type="file"
-                                className="form-control border-primary m-auto"
-                                id="btnUpload"
-                                placeholder="Cargar Imágen"
-                                name="uploadImage"
-											
-                                // onChange={handleInputChange}
-                                // value={}
-                            />
-						</div>
-						
-					</div>
-					
-				</div> */}
-
 				<div className="col-sm-12 col-md-12 text-center m-auto my-5">
 					<h1>¿Por qué elegir AgriVision AI?</h1>
 					<p>
