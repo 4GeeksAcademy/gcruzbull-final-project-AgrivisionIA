@@ -37,7 +37,7 @@ export default function storeReducer(store, action = {}) {
 
     case 'login':
 
-      // localStorage.setItem("token", action.payload);
+      localStorage.setItem("token", action.payload);
 
       const token = action.payload
       
@@ -47,7 +47,7 @@ export default function storeReducer(store, action = {}) {
       };
 
     case 'logout':
-      // localStorage.removeItem("token");
+      localStorage.removeItem("token");
       return {
         ...store,
         token: localStorage.getItem("token") || null,

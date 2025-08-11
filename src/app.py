@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db, User, Farm, Farm_images
+from api.models import db, User, Farm, Farm_images, DiagnosticReport
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -18,6 +18,7 @@ from datetime import timedelta
 import cloudinary
 from dotenv import load_dotenv
 
+
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
@@ -26,13 +27,13 @@ static_file_dir = os.path.join(os.path.dirname(
 
 app = Flask(__name__)
 
+load_dotenv()
+
 # jwt configuration. Must be after app = Flask(__name__)
 # setup jwt_extended to generate token
 # El token lo voy a generar en routes.py
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 jwt = JWTManager(app)
-
-load_dotenv()
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -63,6 +64,14 @@ setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
+
+BASE_DIR = os.getcwd()  # o os.path.dirname(os.path.realpath(__file__)) si prefieres relativo al src
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')  # ruta física en el servidor
+
+# Dónde queda la carpeta: Con os.getcwd() y ejecutando mi app desde la raíz del proyecto, la carpeta será ./uploads/.
+# Crear la carpeta: el endpoint crea reports/ con os.makedirs(..., exist_ok=True), pero puedes crear uploads en tu repo y añadir .gitkeep o ignorarla en git.
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB máximo por request (ajusta según necesites)
 
 from flask import send_from_directory
 

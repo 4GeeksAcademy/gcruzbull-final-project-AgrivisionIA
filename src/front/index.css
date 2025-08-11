@@ -5,3 +5,13 @@
 .border-dashed {
     border-style:dashed;
 }
+
+.custom-info-btn {
+    background-color: #007bff; /* color personalizado */
+    border-color: #007bff;     /* borde del mismo color */
+    color: white;              /* texto en blanco */
+}
+.custom-info-btn:hover {
+    background-color: #0056b3; /* color al pasar el mouse */
+    border-color: #0056b3;
+}

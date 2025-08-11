@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 import ssl
+from api.models import db, User
 
 class APIException(Exception):
     status_code = 400
@@ -84,3 +85,163 @@ def send_email(subject, to, body_message):
     except Exception as error:
         print(str(error))
         return False
+
+
+# ============ FUNCIONES DE ADMINISTRACIÓN DE USUARIOS ============
+
+def make_user_admin(email):
+    """
+    Convierte un usuario en administrador
+    
+    Args:
+        email (str): Email del usuario a convertir en admin
+        
+    Returns:
+        dict: Resultado de la operación con status y mensaje
+    """
+    user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        return {
+            "success": False,
+            "message": f"Usuario con email '{email}' no encontrado"
+        }
+    
+    if user.is_admin == 'admin':
+        return {
+            "success": True,
+            "message": f"El usuario '{email}' ya es administrador"
+        }
+    
+    # Cambiar a admin
+    user.is_admin = 'admin'
+    
+    try:
+        db.session.commit()
+        return {
+            "success": True,
+            "message": f"Usuario '{email}' convertido a administrador exitosamente"
+        }
+    except Exception as error:
+        db.session.rollback()
+        return {
+            "success": False,
+            "message": f"Error al actualizar usuario: {error.args}"
+        }
+
+def remove_admin_privileges(email):
+    """
+    Quita privilegios de administrador a un usuario
+    
+    Args:
+        email (str): Email del usuario
+        
+    Returns:
+        dict: Resultado de la operación
+    """
+    user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        return {
+            "success": False,
+            "message": f"Usuario con email '{email}' no encontrado"
+        }
+    
+    if user.is_admin == 'user':
+        return {
+            "success": True,
+            "message": f"El usuario '{email}' ya es usuario regular"
+        }
+    
+    # Cambiar a user
+    user.is_admin = 'user'
+    
+    try:
+        db.session.commit()
+        return {
+            "success": True,
+            "message": f"Privilegios de admin removidos para '{email}'"
+        }
+    except Exception as error:
+        db.session.rollback()
+        return {
+            "success": False,
+            "message": f"Error al actualizar usuario: {error.args}"
+        }
+
+def list_all_users():
+    """
+    Lista todos los usuarios con su rol
+    
+    Returns:
+        list: Lista de usuarios con su información básica
+    """
+    users = User.query.all()
+    
+    return [{
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "is_admin": user.is_admin,
+        "role_display": "Administrador" if user.is_admin == 'admin' else "Usuario"
+    } for user in users]
+
+def is_user_admin(email):
+    """
+    Verifica si un usuario es administrador por email
+    
+    Args:
+        email (str): Email del usuario
+        
+    Returns:
+        bool: True si es admin, False si no
+    """
+    user = User.query.filter_by(email=email).first()
+    return user and user.is_admin == 'admin'
+
+def is_user_admin_by_id(user_id):
+    """
+    Verifica si un usuario es administrador por ID
+    
+    Args:
+        user_id (int): ID del usuario
+        
+    Returns:
+        bool: True si es admin, False si no
+    """
+    user = User.query.get(user_id)
+    return user and user.is_admin == 'admin'
+
+def get_admin_users():
+    """
+    Obtiene todos los usuarios administradores
+    
+    Returns:
+        list: Lista de usuarios administradores
+    """
+    admins = User.query.filter_by(is_admin='admin').all()
+    
+    return [{
+        "id": admin.id,
+        "email": admin.email,
+        "full_name": admin.full_name,
+        "role_display": "Administrador"
+    } for admin in admins]
+
+def get_regular_users():
+    """
+    Obtiene todos los usuarios regulares (no admin)
+    
+    Returns:
+        list: Lista de usuarios regulares
+    """
+    from api.models import User
+    
+    users = User.query.filter_by(is_admin='user').all()
+    
+    return [{
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "role_display": "Usuario"
+    } for user in users]

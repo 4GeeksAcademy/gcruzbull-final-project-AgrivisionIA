@@ -153,7 +153,9 @@ export const Profile = () => {
     };
 
     const updateAvatar = async () => {
-        const token = localStorage.getItem("token");
+        // const token = localStorage.getItem("token");
+        const token = store.token
+        
         if (!selectedFile || !token) return;
 
         const urlBackend = import.meta.env.VITE_BACKEND_URL;
