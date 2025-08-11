@@ -50,10 +50,11 @@ export default function storeReducer(store, action = {}) {
       localStorage.removeItem("token");
       return {
         ...store,
-        token: localStorage.getItem("token") || null,
+        token: null,           
         profileAvatar: null,
         dataAvatar: null,
-        dashboard: null
+        dashboard: null,
+        userData: null         // para limpiar datos del usuario
       };
 
     case 'ADD_AVATAR':

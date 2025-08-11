@@ -2,7 +2,6 @@ import { useState } from "react"
 import useGlobalReducer from "../hooks/useGlobalReducer"
 import { useSearchParams, Link, useNavigate } from "react-router-dom"
 
-
 const initialStateUser = {
     email: '',
     password: '',
@@ -86,6 +85,27 @@ export const Login = () => {
             alert("Error de conexión");
         } finally {
             setIsLoading(false); // Desactivar loading
+        }
+    };
+
+    const handleLogout = () => {
+        // Confirmar logout
+        const confirmLogout = window.confirm("¿Estás seguro que quieres cerrar sesión?");
+        
+        if (confirmLogout) {
+            // Limpiar localStorage
+            localStorage.removeItem("token");
+            
+            // Limpiar estado global
+            dispatch({ type: "logout" });
+            
+            // Resetear estado local
+            setProfileForm(initialProfileState);
+            
+            // Redirigir al login
+            navigate("/login");
+            
+            alert("Sesión cerrada exitosamente");
         }
     };
 

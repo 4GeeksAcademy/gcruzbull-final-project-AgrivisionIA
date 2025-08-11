@@ -786,7 +786,8 @@ def upload_diagnostic_admin_only():
                 folder="diagnostics",
                 resource_type="auto",
                 access_mode="public",
-                type="upload"
+                type="upload",
+                delivery_type="upload"
             )
             
             print(f"Cloudinary upload result: {upload_result.get('secure_url')}")
@@ -909,7 +910,8 @@ def upload_report():
                 folder="reports",
                 resource_type="auto",
                 access_mode="public",
-                type="upload"
+                type="upload",
+                delivery_type="upload"
             )
         except Exception as error:
             return jsonify({"error": f"Error al subir a Cloudinary: {error.arg}"}), 500
