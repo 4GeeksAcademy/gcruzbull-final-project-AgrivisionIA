@@ -42,7 +42,6 @@ export const Register = () => {
 
     const handleSubmit = async (event) => {     // asegurarme que el handleInputChange (controla el imput y envia eventos) mande todo bien a formdata 
         event.preventDefault()
-        console.log("hola soy el boton de submit")
 
         if (!formData.acceptTerms) {
             alert('Debes aceptar los términos y condiciones');
@@ -56,7 +55,6 @@ export const Register = () => {
         }
 
         try {
-            console.log("Enviando datos de registro...");
             const urlBackend = import.meta.env.VITE_BACKEND_URL;
 
             const formDataToSend = new FormData();      // estoy creando un molde del formulario formData
@@ -64,23 +62,16 @@ export const Register = () => {
             formDataToSend.append("email", formData.email);
             formDataToSend.append("phone_number", formData.phone_number);
             formDataToSend.append("password", formData.password);
-            // formDataToSend.append("avatar", formData.avatar);
             if (formData.avatar) {
                 formDataToSend.append("avatar", formData.avatar);
             }
-
-            console.log("URL Backend:", urlBackend);
-            console.log("Datos a enviar:", formData);
 
             const response = await fetch(`${urlBackend}/api/register`, {
                 method: "POST",
                 body: formDataToSend
             });
 
-            console.log("Response status es el siguiente:", response.status);
-
             const responseData = await response.json();
-            console.log("Response data:", responseData);
 
             if (response.status === 201) {
                 alert("Usuario registrado exitosamente. Redirigiendo al login...");

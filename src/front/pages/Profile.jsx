@@ -55,14 +55,11 @@ export const Profile = () => {
                 }
             });
 
-            console.log("TOKEN ENVIADO:", token);
-
             if (!response.ok) {
                 throw new Error("Error al obtener el perfil");
             }
 
             const data = await response.json();
-            console.log("Datos del perfil:", data);
 
             setProfileForm(data);  // esto llenará todos los campos
             dispatch({ 

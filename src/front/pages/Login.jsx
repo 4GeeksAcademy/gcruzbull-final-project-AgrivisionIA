@@ -47,7 +47,6 @@ export const Login = () => {
 
             if (response.ok) {
 
-                console.log("Login exitoso, token recibido:", data.token); // Debug
                 localStorage.setItem("token", data.token);
 
                 dispatch({

@@ -121,7 +121,6 @@ export const Dashboard = ({ selectedFarmId }) => {
         const farmId = selectedFarmId || selectedFarm;
 
         if (!farmId) {
-            console.log("No hay huerto seleccionado para obtener reportes");
             setReports([]);
             return;
         }
