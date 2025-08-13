@@ -150,7 +150,7 @@ def crear_nuevo_administrador():
         # Verificar si el email ya existe
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            print(f"⚠️  Ya existe un usuario con email '{email}'")
+            print(f"Ya existe un usuario con email '{email}'")
             
             if existing_user.is_admin == 'admin':
                 print("Y ya es administrador")
@@ -166,7 +166,7 @@ def crear_nuevo_administrador():
         
         full_name = input("Nombre completo: ").strip()
         if not full_name:
-            print("❌ Error: Nombre completo es obligatorio")
+            print("Error: Nombre completo es obligatorio")
             return
         
         phone = input("Teléfono (Enter para usar default): ").strip()
@@ -343,7 +343,7 @@ def modo_interactivo():
         mostrar_menu()
         
         try:
-            opcion = input("🎯 Selecciona una opción (1-7): ").strip()
+            opcion = input(" Selecciona una opción (1-7): ").strip()
             
             if opcion == '1':
                 listar_usuarios()
@@ -362,17 +362,17 @@ def modo_interactivo():
                 print("¡Que tengas un excelente día!")
                 break
             else:
-                print(f"\n❌ Opción '{opcion}' no válida")
-                print("💡 Por favor selecciona un número del 1 al 7")
+                print(f"\n Opción '{opcion}' no válida")
+                print(" Por favor selecciona un número del 1 al 7")
         
         except KeyboardInterrupt:
-            print("\n\n👋 Proceso interrumpido por el usuario")
+            print("\n\n Proceso interrumpido por el usuario")
             break
-        except Exception as e:
-            print(f"\n❌ Error inesperado: {e}")
+        except Exception as error:
+            print(f"\n Error inesperado: {error}")
         
         # Pausa antes de volver al menú
-        input("\n⏸️  Presiona Enter para continuar...")
+        input("\n  Presiona Enter para continuar...")
 
 def mostrar_ayuda():
     """Mostrar información de ayuda del script"""
@@ -381,7 +381,7 @@ AGRIVISION AI - GESTOR DE ADMINISTRADORES
 
 Ubicación del script: src/api/admin_manager.py
 
-🚀 FORMAS DE EJECUTAR:
+FORMAS DE EJECUTAR:
    Desde raíz del proyecto:
    python src/api/admin_manager.py                    # Modo interactivo
    python src/api/admin_manager.py --list             # Listar usuarios
@@ -396,14 +396,14 @@ Ubicación del script: src/api/admin_manager.py
    Desde api/:
    python admin_manager.py [opciones]
 
-📖 OPCIONES DISPONIBLES:
+OPCIONES DISPONIBLES:
    --list                 Mostrar todos los usuarios
    --admins              Mostrar solo administradores
    --auto                Crear administradores predefinidos automáticamente
    --help, -h            Mostrar esta información de ayuda
    email@dominio.com     Hacer administrador al email especificado
 
-📝 EJEMPLOS PRÁCTICOS:
+EJEMPLOS PRÁCTICOS:
    python src/api/admin_manager.py
    python src/api/admin_manager.py admin@agrovision.com
    python src/api/admin_manager.py --list
@@ -445,33 +445,33 @@ def main():
             # Parece un email válido
             with app.app_context():
                 from utils import make_user_admin
-                print(f"🔄 Procesando email: {arg}")
+                print(f"Procesando email: {arg}")
                 result = make_user_admin(arg)
-                print(f"📧 {arg}: {result['message']}")
+                print(f"{arg}: {result['message']}")
         
         else:
-            print(f"❌ Argumento no reconocido: '{arg}'")
-            print("💡 Usa --help para ver las opciones disponibles")
+            print(f"Argumento no reconocido: '{arg}'")
+            print("Usa --help para ver las opciones disponibles")
             sys.exit(1)
     
     else:
-        print("❌ Demasiados argumentos proporcionados")
-        print("💡 Usa --help para ver el uso correcto")
+        print("Demasiados argumentos proporcionados")
+        print("Usa --help para ver el uso correcto")
         sys.exit(1)
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n👋 Script interrumpido por el usuario")
+        print("\n\n Script interrumpido por el usuario")
         sys.exit(0)
-    except ImportError as e:
-        print(f"\n❌ Error de importación: {e}")
-        print("💡 Verifica que estés ejecutando desde la ubicación correcta")
-        print("💡 El script debe estar en: src/api/admin_manager.py")
-        print("💡 Ejecutar desde la raíz del proyecto: python src/api/admin_manager.py")
+    except ImportError as error:
+        print(f"\n Error de importación: {error}")
+        print("Verifica que estés ejecutando desde la ubicación correcta")
+        print("El script debe estar en: src/api/admin_manager.py")
+        print("Ejecutar desde la raíz del proyecto: python src/api/admin_manager.py")
         sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Error inesperado: {e}")
-        print("💡 Contacta al desarrollador si el problema persiste")
+    except Exception as error:
+        print(f"\n Error inesperado: {error}")
+        print("Contacta al desarrollador si el problema persiste")
         sys.exit(1)

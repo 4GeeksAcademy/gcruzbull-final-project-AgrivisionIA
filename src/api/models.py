@@ -18,13 +18,6 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(String(500), nullable=False) 
     salt: Mapped[str] = mapped_column(String(80), nullable = False, default = 1 )
 
-
-    # farm_of_user: Mapped[list["Farm"]] = relationship(back_populates="farm_to_user")    # Mapped hace referencia a la clase con que me conecto
-
-    # user_diagnostic_reports: Mapped[list["DiagnosticReport"]] = relationship(back_populates="user_report", cascade="all, delete-orphan")
-
-
-
     farm_of_user: Mapped[list["Farm"]] = relationship(back_populates="farm_to_user")    
 
     user_diagnostic_reports: Mapped[list["DiagnosticReport"]] = relationship(back_populates="user_report", cascade="all, delete-orphan")
@@ -60,7 +53,6 @@ class Farm(db.Model):
     farm_to_user: Mapped["User"] = relationship(back_populates="farm_of_user")
     images: Mapped[list["Farm_images"]] = relationship(back_populates="images_table")
 
-    # analyses: Mapped[list["ImageAnalysis"]] = relationship(back_populates="farm")
     diagnostic_reports: Mapped[list["DiagnosticReport"]] = relationship(back_populates="farm_report", cascade="all, delete-orphan")
 
     def serialize(self):
@@ -81,12 +73,8 @@ class Farm_images(db.Model):
     upload_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
     file_name: Mapped[str] = mapped_column(String(255), nullable=True)
     uploaded_by: Mapped[str] = mapped_column(String(100), nullable=True) 
-    # uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)  # FK a User
-    # public_id: Mapped[str] = mapped_column(String(255), nullable=True)  # para Cloudinary
 
     images_table: Mapped["Farm"] = relationship(back_populates="images")
-
-    # uploader_user: Mapped["User"] = relationship("User")  # relacion con usuario que subió
 
     def serialize(self):
         return {
@@ -97,66 +85,7 @@ class Farm_images(db.Model):
             "upload_date": self.upload_date.isoformat() if self.upload_date else None,
             "file_name": self.file_name,
             "uploaded_by": self.uploaded_by,
-            # "uploaded_by_user_id": self.uploaded_by_user_id,
-            # "public_id": self.public_id
         }
-
-
-# 1) Alternativa Avanzada version simple:
-
-# class ImageAnalysis(db.Model):
-#     __tablename__ = "image_analysis"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     farm_image_id: Mapped[int] = mapped_column(ForeignKey("farm_images.id"), nullable=False)
-#     analysis_result: Mapped[str] = mapped_column(db.Text, nullable=False)  # puede ser JSON o texto plano
-#     analysis_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
-
-#     image: Mapped["Farm_images"] = relationship()  # relación simple con farm_images
-
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "farm_image_id": self.farm_image_id,
-#             "analysis_result": self.analysis_result,
-#             "analysis_date": self.analysis_date.isoformat(),
-#         }
-
-# 2) Alternativa Avanzada version compleja:
-   
-# class ImageAnalysis(db.Model):
-#     __tablename__ = "image_analysis"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     image_id: Mapped[int] = mapped_column(ForeignKey("farm_images.id"), nullable=False)
-#     farm_id: Mapped[int] = mapped_column(ForeignKey("farm.id"), nullable=False)
-#     analysis_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
-    
-#     ndvi_mean: Mapped[float] = mapped_column(Float, nullable=True)
-#     ndvi_min: Mapped[float] = mapped_column(Float, nullable=True)
-#     ndvi_max: Mapped[float] = mapped_column(Float, nullable=True)
-    
-#     stress_index: Mapped[float] = mapped_column(Float, nullable=True)  # ejemplo índice de estrés hídrico
-#     pest_probability: Mapped[float] = mapped_column(Float, nullable=True)  # predicción de plagas
-    
-#     notes: Mapped[str] = mapped_column(String(500), nullable=True)  # Observaciones libres
-
-#     farm: Mapped["Farm"] = relationship(back_populates="analyses")
-#     image: Mapped["Farm_images"] = relationship(back_populates="analyses")
-
-#     def serialize(self):
-#         return {
-#             "id": self.id,
-#             "image_id": self.image_id,
-#             "farm_id": self.farm_id,
-#             "analysis_date": self.analysis_date.isoformat(),
-#             "ndvi_mean": self.ndvi_mean,
-#             "ndvi_min": self.ndvi_min,
-#             "ndvi_max": self.ndvi_max,
-#             "stress_index": self.stress_index,
-#             "pest_probability": self.pest_probability,
-#             "notes": self.notes,
-#         };
 
 class DiagnosticReport(db.Model):
     __tablename__ = 'diagnostic_reports'

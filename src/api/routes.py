@@ -558,67 +558,6 @@ def update_avatar():
         db.session.rollback()
         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
 
-# @api.route('/update-avatar', methods=['PUT'])
-# @jwt_required()
-# def update_avatar():
-
-#     data_files = request.files      # Trae archivos del formulario
-
-#     if 'avatar' not in data_files:
-#         return jsonify({"error": "No se encontró ninguna imagen"}), 400
-
-#     image = data_files['avatar']
-
-#     if image.filename == '':
-#         return jsonify({"error": "Nombre de archivo vacío"}), 400
-
-#     try:
-#         # Subir la imagen a Cloudinary
-#         result_image = uploader.upload(image)
-#         avatar_url = result_image.get("secure_url")
-
-#         # Actualizar el usuario
-#         current_user_id = get_jwt_identity()
-#         user = User.query.filter_by(user_id=current_user_id).one_or_none()
-#         user.avatar = avatar_url
-
-#         db.session.commit()
-
-#         return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
-
-#     except Exception as error:
-#         db.session.rollback()
-#         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
-
-# @api.route('/upload-avatar', methods=['POST'])
-# @jwt_required()
-# def upload_avatar():
-#     if 'avatar' not in request.files:
-#         return jsonify({"error": "No se encontró ninguna imagen"}), 400
-
-#     file = request.files['avatar']
-
-#     if file.filename == '':
-#         return jsonify({"error": "Nombre de archivo vacío"}), 400
-
-#     try:
-#         # Subir la imagen a Cloudinary
-#         result_image = uploader.upload(file)
-#         avatar_url = result_image.get("secure_url")
-
-#         # Actualizar el usuario
-#         user_id = get_jwt_identity()
-#         user = User.query.get(user_id)
-#         user.avatar = avatar_url
-
-#         db.session.commit()
-
-#         return jsonify({"message": "Avatar actualizado con éxito", "avatar": avatar_url}), 200
-
-#     except Exception as error:
-#         db.session.rollback()
-#         return jsonify({"error": f"Error al subir la imagen: {error.args}"}), 500
-
 @api.route('/get-avatar', methods=['GET'])
 @jwt_required()
 def get_avatar():
@@ -638,57 +577,6 @@ def get_avatar():
 def uploaded_file(filename):
     return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
-
-# # ----------- PARA NUEVA TABLA VERSION AVANZADA -----------------------------
-
-# # Nueva tabla:
-
-# # GET /api/analysis → lista todos los análisis
-# @api.route('/analysis', methods=['GET'])
-# def get_all_analyses():
-#     analyses = ImageAnalysis.query.all()
-#     return jsonify([analysis.serialize() for analysis in analyses]), 200
-
-
-# # GET /api/analysis/<id> → obtiene un análisis por id
-# @api.route('/analysis/<int:id>', methods=['GET'])
-# def get_analysis(id):
-#     analysis = ImageAnalysis.query.get_or_404(id)
-#     return jsonify(analysis.serialize()), 200
-
-
-# # POST /api/analysis → crea un análisis nuevo
-# @api.route('/analysis', methods=['POST'])
-# def create_analysis():
-#     data = request.get_json()
-#     try:
-#         new_analysis = ImageAnalysis(
-#             image_id=data['image_id'],
-#             farm_id=data['farm_id'],
-#             ndvi_mean=data.get('ndvi_mean'),
-#             ndvi_min=data.get('ndvi_min'),
-#             ndvi_max=data.get('ndvi_max'),
-#             stress_index=data.get('stress_index'),
-#             pest_probability=data.get('pest_probability'),
-#             notes=data.get('notes')
-#         )
-#         db.session.add(new_analysis)
-#         db.session.commit()
-#         return jsonify(new_analysis.serialize()), 201
-#     except Exception as error:
-#         return jsonify({"error": {error.args}}), 400
-
-# # DELETE /api/analysis/<id> → elimina un análisis
-
-
-# @api.route('/analysis/<int:id>', methods=['DELETE'])
-# def delete_analysis(id):
-#     analysis = ImageAnalysis.query.get_or_404(id)
-#     db.session.delete(analysis)
-#     db.session.commit()
-#     return jsonify({"message": "Analysis deleted"}), 200
-
-
 # ----------- SUBIR REPORTES -----------------------------
 
 # 2) Ruta para que el usuario vea el informe: Simplemente devolver el enlace o servir el archivo:
@@ -702,7 +590,7 @@ def get_single_report(farm_id):
     farm_id = request.args.get('farm_id', type=int)
 
     # objeto de tipo Farm
-    farm = Farm.query.get(id=farm_id)
+    farm = Farm.query.get(farm_id)
 
     if not farm:
         return jsonify({"error": "Campo no encontrado"}), 404
@@ -784,10 +672,10 @@ def upload_diagnostic_admin_only():
                 file_report,
                 public_id=f"diagnostic_{secure_file_name.rsplit('.', 1)[0]}_{current_user_id}_{farm_id}",
                 folder="diagnostics",
-                resource_type="auto",
                 access_mode="public",
                 type="upload",
-                delivery_type="upload"
+                delivery_type="upload",
+                # resource_type="raw"  # necesario para PDF, DOCX, TXT
             )
             
             print(f"Cloudinary upload result: {upload_result.get('secure_url')}")
@@ -908,10 +796,10 @@ def upload_report():
                 file_report,
                 public_id=f"report_{secure_file_name.rsplit('.', 1)[0]}_{current_user_id}_{farm_id}",
                 folder="reports",
-                resource_type="auto",
                 access_mode="public",
                 type="upload",
-                delivery_type="upload"
+                delivery_type="upload",
+                # resource_type="raw"  # necesario para PDF, DOCX, TXT
             )
         except Exception as error:
             return jsonify({"error": f"Error al subir a Cloudinary: {error.arg}"}), 500
@@ -968,7 +856,6 @@ def download_report(report_id):
     if not report:
         return jsonify({"error": "Reporte no encontrado"}), 404
 
-    # Puedes devolver el enlace para que el frontend haga la descarga directa
     return jsonify({
         "id": report.id,
         'user_id': report.user_id,
@@ -982,7 +869,7 @@ def download_report(report_id):
     # # send_from_directory() sirve el archivo de manera segura desde la carpeta configurada.
     # # as_attachment=False abre en el navegador (si es PDF). Si quieres forzar descarga, pon as_attachment=True.
 
-# ENDPOINT ACTUALIZADO: Reports que solo devuelve reportes de usuarios (no diagnósticos)
+# Reports que solo devuelve reportes de usuarios (no diagnósticos)
 @api.route('/reports', methods=['GET'])
 @jwt_required()
 def list_reports():
@@ -1065,3 +952,334 @@ def upload_informe():
     except Exception as error:
         db.session.rollback()
         return jsonify({"error": f"Error al subir el archivo: {error.args}"}), 500
+
+
+# ============ ENDPOINTS DE ADMINISTRACIÓN  ============
+
+# VER TODOS LOS USUARIOS CON SUS CAMPOS
+@api.route('/admin/all-users', methods=['GET'])
+@jwt_required()
+def get_all_users_admin():
+    """Ver todos los usuarios con sus campos (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden acceder"}), 403
+    
+    try:
+        users = User.query.all()
+        
+        result = []
+        for user in users:
+            user_farms = [farm.serialize() for farm in user.farm_of_user]
+            
+            # Contar reportes e imágenes por usuario
+            total_reports = DiagnosticReport.query.filter_by(user_id=user.id, is_diagnostic=False).count()
+            total_images = 0
+            for farm in user.farm_of_user:
+                total_images += Farm_images.query.filter_by(farm_id=farm.id).count()
+            
+            result.append({
+                "user_id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "is_admin": user.is_admin,
+                "avatar": user.avatar,
+                "farms_count": len(user_farms),
+                "farms": user_farms,
+                "total_reports": total_reports,
+                "total_images": total_images
+            })
+        
+        return jsonify({
+            "total_users": len(result),
+            "users": result
+        }), 200
+        
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener usuarios: {error.args}"}), 500
+
+# VER TODOS LOS CAMPOS CON DETALLES
+@api.route('/admin/all-farms', methods=['GET'])
+@jwt_required()
+def get_all_farms_admin():
+    """Ver todos los campos de todos los usuarios con estadísticas (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden acceder"}), 403
+    
+    try:
+        # Obtener todos los campos con información del usuario
+        farms = db.session.query(Farm, User).join(User, Farm.user_id == User.id).all()
+        
+        result = []
+        for farm, user in farms:
+            # Estadísticas del campo
+            reports_count = DiagnosticReport.query.filter_by(farm_id=farm.id, is_diagnostic=False).count()
+            diagnostics_count = DiagnosticReport.query.filter_by(farm_id=farm.id, is_diagnostic=True).count()
+            images_count = Farm_images.query.filter_by(farm_id=farm.id).count()
+            ndvi_images = Farm_images.query.filter_by(farm_id=farm.id, image_type='NDVI').count()
+            aerial_images = Farm_images.query.filter_by(farm_id=farm.id, image_type='AERIAL').count()
+            
+            result.append({
+                "farm_id": farm.id,
+                "farm_name": farm.farm_name,
+                "farm_location": farm.farm_location,
+                "user_id": user.id,
+                "user_name": user.full_name,
+                "user_email": user.email,
+                "user_avatar": user.avatar,
+                "statistics": {
+                    "user_reports": reports_count,
+                    "admin_diagnostics": diagnostics_count,
+                    "total_images": images_count,
+                    "ndvi_images": ndvi_images,
+                    "aerial_images": aerial_images
+                }
+            })
+        
+        return jsonify({
+            "total_farms": len(result),
+            "farms": result
+        }), 200
+        
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener campos: {str(error)}"}), 500
+
+# VER DETALLES ESPECÍFICOS DE UN CAMPO
+@api.route('/admin/farm-details/<int:farm_id>', methods=['GET'])
+@jwt_required()
+def get_farm_details_admin(farm_id):
+    """Ver detalles completos de un campo específico (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden acceder"}), 403
+    
+    try:
+        # Obtener campo con información del usuario
+        farm = Farm.query.get(farm_id)
+        if not farm:
+            return jsonify({"error": "Campo no encontrado"}), 404
+        
+        user = User.query.get(farm.user_id)
+        
+        # Obtener reportes del usuario para este campo
+        user_reports = DiagnosticReport.query.filter_by(
+            farm_id=farm_id, 
+            is_diagnostic=False
+        ).order_by(DiagnosticReport.uploaded_at.desc()).all()
+        
+        # Obtener diagnósticos del admin para este campo
+        admin_diagnostics = DiagnosticReport.query.filter_by(
+            farm_id=farm_id, 
+            is_diagnostic=True
+        ).order_by(DiagnosticReport.uploaded_at.desc()).all()
+        
+        # Obtener imágenes del campo
+        images = Farm_images.query.filter_by(farm_id=farm_id).order_by(Farm_images.upload_date.desc()).all()
+        
+        result = {
+            "farm": {
+                "id": farm.id,
+                "farm_name": farm.farm_name,
+                "farm_location": farm.farm_location
+            },
+            "owner": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "avatar": user.avatar
+            },
+            "user_reports": [report.serialize() for report in user_reports],
+            "admin_diagnostics": [diagnostic.serialize() for diagnostic in admin_diagnostics],
+            "images": [image.serialize() for image in images],
+            "statistics": {
+                "total_user_reports": len(user_reports),
+                "total_admin_diagnostics": len(admin_diagnostics),
+                "total_images": len(images),
+                "ndvi_images": len([img for img in images if img.image_type == 'NDVI']),
+                "aerial_images": len([img for img in images if img.image_type == 'AERIAL'])
+            }
+        }
+        
+        return jsonify(result), 200
+        
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener detalles del campo: {str(error)}"}), 500
+
+# SUBIR DIAGNÓSTICO A CAMPO ESPECÍFICO
+@api.route('/admin/upload-diagnostic', methods=['POST'])
+@jwt_required()
+def upload_diagnostic_to_specific_farm():
+    """Subir diagnóstico a un campo específico (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden subir diagnósticos"}), 403
+
+    data_files = request.files
+    data_form = request.form
+
+    try:
+        farm_id = data_form.get("farm_id")
+        description = data_form.get("description", "Diagnóstico profesional del campo")
+        file_report = data_files.get('diagnostic_file')
+        
+        if not file_report:
+            return jsonify({"error": "No se envió archivo de diagnóstico"}), 400
+        
+        if not farm_id:
+            return jsonify({"error": "farm_id es requerido"}), 400
+
+        # Verificar que la farm existe
+        farm = Farm.query.get(farm_id)
+        if not farm:
+            return jsonify({"error": "Campo no encontrado"}), 404
+
+        secure_file_name = secure_filename(file_report.filename)
+        
+        # Validar extensión
+        ALLOWED_EXT = {'pdf', 'docx', 'doc', 'txt'}
+        extension = secure_file_name.rsplit('.', 1)[-1].lower() if '.' in secure_file_name else ''
+        if extension not in ALLOWED_EXT:
+            return jsonify({"error": f"Formato no permitido. Permitidos: {ALLOWED_EXT}"}), 400
+
+        user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({"error": "Usuario administrador no encontrado"}), 404
+
+        # Subir archivo a Cloudinary CON PERMISOS PÚBLICOS
+        try:
+            upload_result = uploader.upload(
+                file_report,
+                public_id=f"diagnostic_{farm_id}_{secure_file_name.rsplit('.', 1)[0]}_{current_user_id}",
+                folder="diagnostics",
+                # resource_type="auto",
+                access_mode="public",
+                type="upload",
+                delivery_type="upload",
+                # resource_type="raw"  # necesario para PDF, DOCX, TXT
+            )
+        except Exception as error:
+            return jsonify({"error": f"Error al subir a Cloudinary: {str(error)}"}), 500
+
+        secure_report_url = upload_result.get("secure_url")
+
+        # Guardar en la base de datos COMO DIAGNÓSTICO
+        new_diagnostic = DiagnosticReport(
+            user_id=current_user_id,  # Admin que sube
+            farm_id=farm_id,          # Campo específico
+            file_name=secure_file_name,
+            file_url=secure_report_url,
+            uploaded_at=datetime.now(timezone.utc),
+            uploaded_by=user.email,
+            description=description,
+            is_diagnostic=True  # MARCAR COMO DIAGNÓSTICO
+        )
+        
+        db.session.add(new_diagnostic)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Diagnóstico subido correctamente",
+            "diagnostic_id": new_diagnostic.id,
+            "file_url": secure_report_url,
+            "farm_info": {
+                "farm_id": farm.id,
+                "farm_name": farm.farm_name,
+                "farm_location": farm.farm_location,
+                "owner": farm.farm_to_user.full_name
+            },
+            "data": new_diagnostic.serialize()
+        }), 201
+
+    except Exception as error:
+        db.session.rollback()
+        return jsonify({"error": f"Error al subir diagnóstico: {str(error)}"}), 500
+
+# VER TODOS LOS REPORTES POR ESTADO
+@api.route('/admin/reports-overview', methods=['GET'])
+@jwt_required()
+def get_reports_overview_admin():
+    """Overview de todos los reportes y diagnósticos (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden acceder"}), 403
+    
+    try:
+        # Reportes de usuarios (pendientes de diagnóstico)
+        user_reports = DiagnosticReport.query.filter_by(is_diagnostic=False).all()
+        
+        # Diagnósticos ya realizados
+        admin_diagnostics = DiagnosticReport.query.filter_by(is_diagnostic=True).all()
+        
+        # Campos sin diagnósticos
+        farms_with_diagnostics = [d.farm_id for d in admin_diagnostics]
+        farms_without_diagnostics = Farm.query.filter(~Farm.id.in_(farms_with_diagnostics)).all()
+        
+        result = {
+            "overview": {
+                "total_user_reports": len(user_reports),
+                "total_admin_diagnostics": len(admin_diagnostics),
+                "farms_without_diagnostics": len(farms_without_diagnostics),
+                "total_farms": Farm.query.count(),
+                "total_users": User.query.filter_by(is_admin='user').count()
+            },
+            "recent_user_reports": [report.serialize() for report in user_reports[-10:]],  # Últimos 10
+            "recent_diagnostics": [diagnostic.serialize() for diagnostic in admin_diagnostics[-10:]],  # Últimos 10
+            "farms_needing_attention": [{
+                "farm_id": farm.id,
+                "farm_name": farm.farm_name,
+                "farm_location": farm.farm_location,
+                "owner": farm.farm_to_user.full_name,
+                "user_reports": DiagnosticReport.query.filter_by(farm_id=farm.id, is_diagnostic=False).count()
+            } for farm in farms_without_diagnostics[:5]]  # Primeros 5
+        }
+        
+        return jsonify(result), 200
+        
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener overview: {str(error)}"}), 500
+
+# OBTENER DIAGNÓSTICOS DE UN CAMPO ESPECÍFICO
+@api.route('/admin/diagnostics/<int:farm_id>', methods=['GET'])
+@jwt_required()
+def get_farm_diagnostics_admin(farm_id):
+    """Obtener todos los diagnósticos de un campo específico (solo admin)"""
+    current_user_id = get_jwt_identity()
+    
+    if not is_admin_user(current_user_id):
+        return jsonify({"error": "Solo administradores pueden acceder"}), 403
+    
+    try:
+        # Verificar que la farm existe
+        farm = Farm.query.get(farm_id)
+        if not farm:
+            return jsonify({"error": "Campo no encontrado"}), 404
+        
+        # Obtener diagnósticos del campo
+        diagnostics = DiagnosticReport.query.filter_by(
+            farm_id=farm_id, 
+            is_diagnostic=True
+        ).order_by(DiagnosticReport.uploaded_at.desc()).all()
+        
+        result = {
+            "farm_info": {
+                "farm_id": farm.id,
+                "farm_name": farm.farm_name,
+                "farm_location": farm.farm_location,
+                "owner": farm.farm_to_user.full_name
+            },
+            "diagnostics": [diagnostic.serialize() for diagnostic in diagnostics],
+            "total_diagnostics": len(diagnostics)
+        }
+        
+        return jsonify(result), 200
+        
+    except Exception as error:
+        return jsonify({"error": f"Error al obtener diagnósticos: {error.args}"}), 500

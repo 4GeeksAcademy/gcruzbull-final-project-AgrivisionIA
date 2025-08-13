@@ -27,7 +27,7 @@ export const Profile = () => {
         farm_location: ''
     });
 
-    // const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleInputChange = ({ target }) => {
         setProfileForm({
@@ -153,7 +153,7 @@ export const Profile = () => {
     };
 
     const updateAvatar = async () => {
-        // const token = localStorage.getItem("token");
+        
         const token = store.token
         
         if (!selectedFile || !token) return;
@@ -284,50 +284,6 @@ export const Profile = () => {
                             </button>
                         </div>
                     </>
-
-                    {/* <form
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            updateAvatar();
-                        }}
-                    >
-                        <div className="my-2">
-                            <label className="form-label"></label>
-                            <input
-                                type="file"
-                                className="form-control-sm w-50"
-                                accept="image/*"
-                                // onChange={(event) => setSelectedFile(event.target.files[0])}
-                                onChange={(event) => {
-                                    const file = event.target.files[0];
-                                    if (file) {
-                                        setSelectedFile(file);
-                                        const url = URL.createObjectURL(file);
-                                        setPreviewUrl(url);
-                                    }
-                                }}
-                            /> */}
-
-                            {/* Vista previa */}
-                            {/* {previewUrl && (
-                                <div className="mt-2">
-                                    <p className="small text-muted">Vista previa:</p>
-                                    <img
-                                        src={previewUrl}
-                                        alt="Vista previa del avatar"
-                                        className="img-fluid rounded"
-                                        style={{ maxHeight: "200px", objectFit: "cover" }}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        <div>
-                            <button className="btn btn-primary btn-sm" type="submit">
-                                Subir Imagen
-                            </button>
-                        </div>
-                    </form> */}
                 </div>
 
                 {/* Datos personales */}
@@ -441,61 +397,6 @@ export const Profile = () => {
                         </button>
                     </div>
                 </div>
-
-                {/* botones */}
-
-                {/* <div className="col-md-12">
-                    <ul className="list-unstyled">
-                        <li className="my-2">
-                            <button
-                                type="submit"
-                                className="btn btn-success "
-                                disabled={true}
-                            >
-                                <Link className="text-white text-decoration-none">
-                                    Registro Fitosanitario
-                                </Link>
-                            </button>
-                        </li>
-
-                        <li className="my-2">
-                            <button
-                                type="submit"
-                                className="btn btn-success "
-                                disabled={true}
-                            >
-                                <Link className="text-white text-decoration-none">
-                                    Registro Nutricional
-                                </Link>
-                            </button>
-                        </li> */}
-
-                        {/* <li className="my-2">
-                                <button
-                                    type="submit"
-                                    className="btn btn-success "
-                                    disabled= {true}
-                                >
-                                    <Link className="text-white text-decoration-none">
-                                        Registro Climatico
-                                    </Link>
-                                </button>
-                            </li> */}
-
-                        {/* <li className="my-2">
-                            <button
-                                type="submit"
-                                className="btn btn-success "
-                                disabled={true}
-                            >
-                                <Link className="text-white text-decoration-none">
-                                    Mapa del Huerto
-                                </Link>
-                            </button>
-                        </li>
-                    </ul>
-
-                </div> */}
             </form>
         </div>
     )

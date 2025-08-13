@@ -22,7 +22,7 @@ export const Home = () => {
 				{/* sub contenedor 3 */}
 				<div className="p-4">
 					<p className = "fw-bold text-center pb-3">
-						Sube imágenes satelitales, aereas, o terrestres de tu campo y obtén un análisis y recomendaciones precisas optimizar tus operacion y disminuir tus costos.
+						Sube imágenes satelitales, aereas, terrestres, o informes de tu campo y obtén un análisis y recomendaciones precisas optimizar tus operacion y disminuir tus costos.
 					</p>
 					<p className = "fw-bold text-center">
 						Análisis y recomendaciones precisas a nivel general y por cuartel sobre la salud, vigor, y estado nutricionals de tu huerto.
@@ -82,7 +82,7 @@ export const Home = () => {
 								<i className="fa-2x fa-regular fa-file-image" style={{color: "#0ca145"}}></i>
 								<h3>Análisis Multi-Fuente</h3>
 								<p>
-									Soporte para imágenes de drones, datos satelitales y fotografía terrestre para un análisis integral del campo.
+									Soporte para imágenes de drones, datos satelitales, fotografía terrestre, o informes para un análisis integral del campo.
 								</p>
 							</div>
 

@@ -1,6 +1,13 @@
 
 import click
 from api.models import db, User
+import sys
+import os
+from models import db, User
+from werkzeug.security import generate_password_hash
+from base64 import b64encode
+from flask_sqlalchemy import SQLAlchemy
+from utils import make_user_admin
 
 """
 In this file, you can add as many commands as you want using the @app.cli.command decorator
@@ -49,7 +56,7 @@ def setup_commands(app):
         # Verificar si ya existe
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            click.echo(f"❌ Ya existe un usuario con email '{email}'")
+            click.echo(f"Ya existe un usuario con email '{email}'")
             
             # Usar función de utils para hacerlo admin
             result = make_user_admin(email)
@@ -78,14 +85,14 @@ def setup_commands(app):
         try:
             db.session.add(new_user)
             db.session.commit()
-            click.echo(f"✅ Usuario administrador creado exitosamente:")
-            click.echo(f"👤 Nombre: {name}")
-            click.echo(f"📧 Email: {email}")
-            click.echo(f"🔑 Contraseña: {password}")
-            click.echo(f"👑 Rol: Administrador")
-        except Exception as e:
+            click.echo(f"Usuario administrador creado exitosamente:")
+            click.echo(f"Nombre: {name}")
+            click.echo(f"Email: {email}")
+            click.echo(f"Contraseña: {password}")
+            click.echo(f"Rol: Administrador")
+        except Exception as error:
             db.session.rollback()
-            click.echo(f"❌ Error al crear usuario: {e}")
+            click.echo(f"Error al crear usuario: {error}")
 
     @app.cli.command("make-admin")
     @click.argument("email")
@@ -119,7 +126,7 @@ def setup_commands(app):
             click.echo(f"{user['role_display']} | {user['email']:<30} | {user['full_name']}")
         
         click.echo("-" * 70)
-        click.echo(f"📊 Administradores: {admins} | Usuarios regulares: {regulars}")
+        click.echo(f"Administradores: {admins} | Usuarios regulares: {regulars}")
 
     @app.cli.command("remove-admin")
     @click.argument("email")
@@ -139,14 +146,14 @@ def setup_commands(app):
         admins = get_admin_users()
         
         if not admins:
-            click.echo("👑 No hay administradores registrados")
+            click.echo("No hay administradores registrados")
             return
         
-        click.echo(f"\n👑 Administradores ({len(admins)} total):")
+        click.echo(f"\nAdministradores ({len(admins)} total):")
         click.echo("-" * 50)
         
         for admin in admins:
-            click.echo(f"👑 {admin['email']:<30} | {admin['full_name']}")
+            click.echo(f" {admin['email']:<30} | {admin['full_name']}")
         
         click.echo("-" * 50)
 
@@ -160,10 +167,10 @@ def setup_commands(app):
         
         user = User.query.filter_by(email=email).first()
         if not user:
-            click.echo(f"❌ Usuario '{email}' no encontrado")
+            click.echo(f"Usuario '{email}' no encontrado")
             return
         
-        role = "👑 Administrador" if is_admin else "👤 Usuario regular"
+        role = "Administrador" if is_admin else "👤 Usuario regular"
         click.echo(f"👤 {user.full_name} ({email})")
         click.echo(f"🏷️  Rol: {role}")
 
@@ -176,19 +183,19 @@ def setup_commands(app):
     def init_project_command(admin_email, admin_name, admin_password):
         """Inicializar proyecto con primer administrador."""
         
-        click.echo("🚀 Inicializando proyecto AgriVision AI...")
+        click.echo("Inicializando proyecto AgriVision AI...")
         
         # Verificar si ya hay administradores
         from api.utils import get_admin_users
         existing_admins = get_admin_users()
         
         if existing_admins:
-            click.echo(f"⚠️  Ya existen {len(existing_admins)} administradores:")
+            click.echo(f"Ya existen {len(existing_admins)} administradores:")
             for admin in existing_admins:
-                click.echo(f"   👑 {admin['email']}")
+                click.echo(f"    {admin['email']}")
             
             if not click.confirm("¿Continuar creando otro administrador?"):
-                click.echo("❌ Operación cancelada")
+                click.echo("Operación cancelada")
                 return
         
         # Crear primer administrador
@@ -212,16 +219,16 @@ def setup_commands(app):
             db.session.add(admin_user)
             db.session.commit()
             
-            click.echo("✅ Proyecto inicializado exitosamente!")
-            click.echo(f"👑 Primer administrador creado:")
-            click.echo(f"   📧 Email: {admin_email}")
-            click.echo(f"   👤 Nombre: {admin_name}")
-            click.echo(f"   🔑 Contraseña: [configurada]")
-            click.echo("\n🎯 ¡Ya puedes iniciar sesión en AgriVision AI!")
+            click.echo("Proyecto inicializado exitosamente!")
+            click.echo(f"Primer administrador creado:")
+            click.echo(f"Email: {admin_email}")
+            click.echo(f"Nombre: {admin_name}")
+            click.echo(f"Contraseña: [configurada]")
+            click.echo("\n ¡Ya puedes iniciar sesión en AgriVision AI!")
             
-        except Exception as e:
+        except Exception as error:
             db.session.rollback()
-            click.echo(f"❌ Error al crear administrador: {e}")
+            click.echo(f"Error al crear administrador: {error}")
 
     # ============ COMANDO DE VERIFICACIÓN DEL SISTEMA ============
 
@@ -229,7 +236,7 @@ def setup_commands(app):
     def system_check_command():
         """Verificar el estado del sistema."""
         
-        click.echo("🔍 VERIFICACIÓN DEL SISTEMA AGRIVISION AI")
+        click.echo("VERIFICACIÓN DEL SISTEMA AGRIVISION AI")
         click.echo("=" * 50)
         
         # Verificar conexión a base de datos
@@ -239,27 +246,27 @@ def setup_commands(app):
             users = list_all_users()
             admins = get_admin_users()
             
-            click.echo(f"✅ Conexión a base de datos: OK")
-            click.echo(f"📊 Total usuarios: {len(users)}")
-            click.echo(f"👑 Total administradores: {len(admins)}")
+            click.echo(f"Conexión a base de datos: OK")
+            click.echo(f"Total usuarios: {len(users)}")
+            click.echo(f"Total administradores: {len(admins)}")
             
             if len(admins) == 0:
-                click.echo("⚠️  ADVERTENCIA: No hay administradores configurados")
-                click.echo("💡 Ejecuta: flask create-admin admin@agrovision.com")
+                click.echo("ADVERTENCIA: No hay administradores configurados")
+                click.echo("Ejecuta: flask create-admin admin@agrovision.com")
             
             # Verificar modelos
             from api.models import User, Farm, DiagnosticReport, Farm_images
             
-            click.echo(f"🏗️  Tablas verificadas:")
+            click.echo(f"  Tablas verificadas:")
             click.echo(f"   - Usuarios: {User.query.count()}")
             click.echo(f"   - Campos: {Farm.query.count()}")
             click.echo(f"   - Reportes diagnósticos: {DiagnosticReport.query.count()}")
             click.echo(f"   - Imágenes de campo: {Farm_images.query.count()}")
             
             click.echo("=" * 50)
-            click.echo("✅ Sistema verificado correctamente")
+            click.echo("Sistema verificado correctamente")
             
-        except Exception as e:
-            click.echo(f"❌ Error en verificación: {e}")
+        except Exception as error:
+            click.echo(f"❌ Error en verificación: {error}")
 
-    click.echo("✅ Comandos de administración cargados correctamente")
+    click.echo("Comandos de administración cargados correctamente")
