@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, relationship
-from datetime import datetime, timezone, UTC
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 

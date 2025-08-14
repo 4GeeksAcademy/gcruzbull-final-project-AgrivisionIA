@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint, current_app, send_from_directory
-from api.models import db, User, Farm, Farm_images, DiagnosticReport  # ImageAnalysis
+from api.models import db, User, Farm, Farm_images, DiagnosticReport
 from api.utils import generate_sitemap, APIException, send_email
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash

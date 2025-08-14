@@ -1,4 +1,4 @@
-from flask import jsonify, url_for
+from flask import url_for
 import os
 from email.mime.text import MIMEText                
 from email.mime.multipart import MIMEMultipart
