@@ -1,7 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint, current_app, send_from_directory
+from flask import Flask, request, jsonify, Blueprint, send_from_directory
 from api.models import db, User, Farm, Farm_images, DiagnosticReport
 from api.utils import generate_sitemap, APIException, send_email
 from flask_cors import CORS
@@ -13,8 +13,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from datetime import timedelta, datetime, timezone
 import cloudinary
 import cloudinary.uploader as uploader
-from cloudinary.utils import cloudinary_url
-from uuid import uuid4
+from api.utils import is_user_admin_by_id
 
 api = Blueprint('api', __name__)
 
@@ -23,8 +22,8 @@ api = Blueprint('api', __name__)
 
 # CONFIGURACIÓN CORS MEJORADA
 CORS(api, 
-     supports_credentials=True,
-     origins=["*"],  # En producción, especifica dominios exactos
+    #  supports_credentials=True,
+    #  origins=["*"],  # En producción, especifica dominios exactos
 )
 
 # Manejo del Hash de la contraseña creando 2 funciones
@@ -41,7 +40,6 @@ def check_password(password_hash, password, salt):
 
 # Verificar si el usuario es admin
 def is_admin_user(user_id):
-    from api.utils import is_user_admin_by_id
     return is_user_admin_by_id(user_id)
 
 # Duración de vida del token

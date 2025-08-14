@@ -6,6 +6,7 @@ import os
 from werkzeug.security import generate_password_hash
 from base64 import b64encode
 from flask_sqlalchemy import SQLAlchemy
+from api.utils import make_user_admin
 
 """
 In this file, you can add as many commands as you want using the @app.cli.command decorator
@@ -98,7 +99,6 @@ def setup_commands(app):
         """Convertir un usuario existente en administrador."""
         
         # Usar función de utils.py
-        from api.utils import make_user_admin
         result = make_user_admin(email)
         click.echo(result["message"])
 

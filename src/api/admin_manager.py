@@ -19,7 +19,7 @@ from models import db, User
 from werkzeug.security import generate_password_hash
 from base64 import b64encode
 from flask_sqlalchemy import SQLAlchemy
-from utils import make_user_admin
+from api.utils import make_user_admin
 
 # Configurar imports para que funcione desde cualquier ubicación
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -99,7 +99,6 @@ def listar_administradores():
 def hacer_administrador():
     """Convertir usuario existente en administrador"""
     with app.app_context():
-        from utils import make_user_admin
         
         print("\n PROMOCIONAR A ADMINISTRADOR")
         print("="*45)
@@ -159,7 +158,6 @@ def crear_nuevo_administrador():
                 # Ofrecer promocionar al existente
                 promocionar = input("¿Quieres promocionarlo a administrador? (s/N): ").strip().lower()
                 if promocionar == 's':
-                    from utils import make_user_admin
                     result = make_user_admin(email)
                     print(f"\n{result['message']}")
                 return
@@ -301,7 +299,6 @@ def verificar_estado_usuario():
 def crear_administradores_automatico():
     """Crear múltiples administradores automáticamente"""
     with app.app_context():
-        from utils import make_user_admin
         
         # Lista de emails predefinidos para hacer administradores
         # Personaliza esta lista según tus necesidades
@@ -444,7 +441,6 @@ def main():
         elif "@" in arg and "." in arg:
             # Parece un email válido
             with app.app_context():
-                from utils import make_user_admin
                 print(f"Procesando email: {arg}")
                 result = make_user_admin(arg)
                 print(f"{arg}: {result['message']}")
