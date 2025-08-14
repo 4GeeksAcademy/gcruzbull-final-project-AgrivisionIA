@@ -3,11 +3,9 @@ import click
 from api.models import db, User
 import sys
 import os
-from models import db, User
 from werkzeug.security import generate_password_hash
 from base64 import b64encode
 from flask_sqlalchemy import SQLAlchemy
-from utils import make_user_admin
 
 """
 In this file, you can add as many commands as you want using the @app.cli.command decorator
