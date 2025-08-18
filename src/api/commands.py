@@ -111,10 +111,10 @@ def setup_commands(app):
         users = list_all_users()
         
         if not users:
-            click.echo("📋 No hay usuarios registrados")
+            click.echo(" No hay usuarios registrados")
             return
         
-        click.echo(f"\n📋 Lista de usuarios ({len(users)} total):")
+        click.echo(f"\n Lista de usuarios ({len(users)} total):")
         click.echo("-" * 70)
         
         admins = sum(1 for u in users if u['is_admin'] == 'admin')
@@ -265,6 +265,6 @@ def setup_commands(app):
             click.echo("Sistema verificado correctamente")
             
         except Exception as error:
-            click.echo(f"❌ Error en verificación: {error}")
+            click.echo(f"Error en verificación: {error}")
 
     click.echo("Comandos de administración cargados correctamente")
