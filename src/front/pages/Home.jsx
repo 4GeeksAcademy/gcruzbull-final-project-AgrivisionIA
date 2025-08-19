@@ -48,13 +48,13 @@ export const Home = () => {
 						</button>
 
 						<button className="col-md-12 col-lg-4 d-flex align-content-center rounded-5 ms-1 btn btn-white fw-bold border border-secondary-subtle">
-							<i className="fa-2x p-3 fa-solid fa-bug" style={{color: "#948800"}}></i>
-							<p classNasme="m-auto">Detección de Plagas y Patógenos</p>
+							<i className="fa-2x p-3 fa-solid fa-map-location-dot" style={{color: "#0b6e24ff"}}></i>
+							<p className="m-auto p-3">Análisis General y por Cuartel</p>
 						</button>
 
 						<button className="col-md-12 col-lg-4 d-flex align-content-center rounded-5 me-1 btn btn-white fw-bold border border-secondary-subtle">
-							<i className="fa-2x p-3 fa-solid fa-map-location-dot" style={{color: "#0b6e24ff"}}></i>
-							<p className="m-auto p-3">Análisis General y por Cuartel</p>
+							<i className="fa-2x p-3 fa-solid fa-bug" style={{color: "#968a04ff"}}></i>
+							<p className="m-auto p-3">Detección de Plagas y Patógenos</p>
 						</button>
 
 						<button className="col-md-12 col-lg-4 d-flex align-content-center rounded-5 ms-1 btn btn-white fw-bold border border-secondary-subtle">

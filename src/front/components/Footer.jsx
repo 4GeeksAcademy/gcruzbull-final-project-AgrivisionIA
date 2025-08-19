@@ -1,6 +1,6 @@
 export const Footer = () => (
 
-	<footer className=" text-dark border-top mt-3 py-3">
+	<footer className=" text-dark border-top mt-0 py-3">
 		<div className="container">
 			<div className="row d-flex justify-content-between">
 				<div className="col-md-6">
