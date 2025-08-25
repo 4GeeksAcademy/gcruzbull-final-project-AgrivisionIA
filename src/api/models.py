@@ -10,13 +10,13 @@ class User(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     full_name: Mapped[str] = mapped_column(String(50), nullable = False)
-    phone_number: Mapped[int] = mapped_column(String(30), nullable = False, default = "")
+    phone_number: Mapped[str] = mapped_column(String(30), nullable = False, default = "")
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     avatar: Mapped[str] = mapped_column(String(500), nullable=True)
-    is_admin: Mapped[str] = mapped_column(String(20), nullable=False, default='user')       # user o admin
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)  # CAMBIO: Boolean en lugar de String
     public_id: Mapped[str] = mapped_column(String(255), nullable=True)
     password: Mapped[str] = mapped_column(String(500), nullable=False) 
-    salt: Mapped[str] = mapped_column(String(80), nullable = False, default = 1 )
+    salt: Mapped[str] = mapped_column(String(80), nullable = False, default = '1' )
 
     farm_of_user: Mapped[list["Farm"]] = relationship(back_populates="farm_to_user")    
 
@@ -48,7 +48,7 @@ class Farm(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     farm_location: Mapped[str] = mapped_column(String(100), nullable=False)
-    farm_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    farm_name: Mapped[str] = mapped_column(String(100), nullable=False)
     
     farm_to_user: Mapped["User"] = relationship(back_populates="farm_of_user")
     images: Mapped[list["Farm_images"]] = relationship(back_populates="images_table")
@@ -95,7 +95,7 @@ class DiagnosticReport(db.Model):
     farm_id: Mapped[int] = mapped_column(Integer, ForeignKey('farm.id'), nullable=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_url: Mapped[str] = mapped_column(String(255), nullable=False)
-    uploaded_at: Mapped[str] = mapped_column(DateTime, default=datetime.now(timezone.utc))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
     uploaded_by: Mapped[str] = mapped_column(String(80), nullable=False)
     description: Mapped[str] = mapped_column(String(500), nullable=True)                  # Para distinguir reportes de usuarios vs diagnósticos de admin
     is_diagnostic: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
