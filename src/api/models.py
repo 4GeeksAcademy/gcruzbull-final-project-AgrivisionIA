@@ -37,7 +37,7 @@ class User(db.Model):
     
     # NUEVO MÉTODO: Para verificar si es admin
     def is_administrator(self):
-        return self.is_admin == 'admin'
+        return self.is_admin
     
 class Farm(db.Model):
     __tablename__ = "farm"

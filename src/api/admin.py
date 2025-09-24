@@ -145,7 +145,7 @@ class UserModelView(SecureModelView):
         'phone_number': 'Teléfono',
         'is_admin': 'Es Administrador',
         'avatar': 'Avatar',
-        'farm_count': 'Granjas'
+        'farm_count': 'Huertos'
     }
     
     # Formateo personalizado
@@ -158,9 +158,9 @@ class UserModelView(SecureModelView):
     def _format_farm_count(view, context, model, name):
         count = len(model.farm_of_user)
         if count == 0:
-            return Markup('<span class="label label-warning">0 granjas</span>')
+            return Markup('<span class="label label-warning">0 huertos</span>')
         else:
-            return Markup(f'<span class="label label-info">{count} granja{"s" if count != 1 else ""}</span>')
+            return Markup(f'<span class="label label-info">{count} huerto{"s" if count != 1 else ""}</span>')
     
     def _format_avatar(view, context, model, name):
         if model.avatar:
@@ -209,7 +209,7 @@ class FarmModelView(SecureModelView):
     # Labels en español
     column_labels = {
         'id': 'ID',
-        'farm_name': 'Nombre de la Granja',
+        'farm_name': 'Nombre del Campo',
         'farm_location': 'Ubicación',
         'user_id': 'ID Usuario',
         'user_info': 'Propietario',
@@ -276,8 +276,8 @@ class FarmImagesModelView(SecureModelView):
     # Labels en español
     column_labels = {
         'id': 'ID',
-        'farm_id': 'ID Granja',
-        'farm_info': 'Granja',
+        'farm_id': 'ID Campo',
+        'farm_info': 'Campo',
         'image_url': 'URL de Imagen',
         'image_preview': 'Vista Previa',
         'image_type': 'Tipo',
@@ -302,7 +302,7 @@ class FarmImagesModelView(SecureModelView):
         farm = model.images_table
         if farm:
             return Markup(f'<strong>{farm.farm_name}</strong><br><small>{farm.farm_location}</small>')
-        return 'Sin granja'
+        return 'Sin campo'
     
     def _format_upload_date(view, context, model, name):
         if model.upload_date:
@@ -323,7 +323,7 @@ class FarmImagesModelView(SecureModelView):
             'choices': [('NDVI', 'NDVI'), ('AERIAL', 'AERIAL')]
         },
         'farm_id': {
-            'label': 'Granja',
+            'label': 'Campo',
             'coerce': int,
             'choices': lambda: [(f.id, f"{f.farm_name} - {f.farm_location}") for f in Farm.query.all()]
         }
@@ -343,8 +343,8 @@ class DiagnosticReportModelView(SecureModelView):
         'id': 'ID',
         'user_id': 'ID Usuario',
         'user_info': 'Usuario',
-        'farm_id': 'ID Granja',
-        'farm_info': 'Granja',
+        'farm_id': 'ID Campo',
+        'farm_info': 'Campo',
         'file_name': 'Nombre del Archivo',
         'file_url': 'URL del Archivo',
         'uploaded_at': 'Fecha de Subida',
@@ -366,7 +366,7 @@ class DiagnosticReportModelView(SecureModelView):
         farm = model.farm_report
         if farm:
             return Markup(f'<strong>{farm.farm_name}</strong><br><small>{farm.farm_location}</small>')
-        return Markup('<span class="label label-default">Sin granja</span>')
+        return Markup('<span class="label label-default">Sin campo</span>')
     
     def _format_type_badge(view, context, model, name):
         if model.is_diagnostic:
@@ -395,9 +395,9 @@ class DiagnosticReportModelView(SecureModelView):
             'choices': lambda: [(u.id, f"{u.full_name} ({u.email})") for u in User.query.all()]
         },
         'farm_id': {
-            'label': 'Granja (Opcional)',
+            'label': 'Campo (Opcional)',
             'coerce': int,
-            'choices': lambda: [(0, 'Sin granja asignada')] + [(f.id, f"{f.farm_name} - {f.farm_location}") for f in Farm.query.all()]
+            'choices': lambda: [(0, 'Sin campo asignado')] + [(f.id, f"{f.farm_name} - {f.farm_location}") for f in Farm.query.all()]
         },
         'description': {
             'widget': TextAreaField().widget,
@@ -452,7 +452,7 @@ def setup_admin(app):
     
     admin.add_view(FarmModelView(
         Farm, db.session,
-        name='Granjas',
+        name='Campos',
         category='Gestión Agrícola',
         menu_icon_type='fa',
         menu_icon_value='fa-leaf'
