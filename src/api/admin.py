@@ -400,7 +400,6 @@ class DiagnosticReportModelView(SecureModelView):
             'choices': lambda: [(0, 'Sin campo asignado')] + [(farm.id, f"{farm.farm_name} - {farm.farm_location}") for farm in Farm.query.all()]
         },
         'description': {
-            'widget': TextAreaField().widget,
             'render_kw': {'rows': 4, 'placeholder': 'Descripción detallada del reporte o diagnóstico...'}
         }
     }
