@@ -145,7 +145,7 @@ class UserModelView(SecureModelView):
         'phone_number': 'Teléfono',
         'is_admin': 'Es Administrador',
         'avatar': 'Avatar',
-        'farm_count': 'Huertos'
+        'farm_count': 'Campos'
     }
     
     # Formateo personalizado
@@ -260,7 +260,7 @@ class FarmModelView(SecureModelView):
         'user_id': {
             'label': 'Propietario',
             'coerce': int,
-            'choices': lambda: [(u.id, f"{u.full_name} ({u.email})") for u in User.query.all()]
+            'choices': lambda: [(user.id, f"{user.full_name} ({user.email})") for user in User.query.all()]
         }
     }
 
@@ -325,7 +325,7 @@ class FarmImagesModelView(SecureModelView):
         'farm_id': {
             'label': 'Campo',
             'coerce': int,
-            'choices': lambda: [(f.id, f"{f.farm_name} - {f.farm_location}") for f in Farm.query.all()]
+            'choices': lambda: [(farm.id, f"{farm.farm_name} - {farm.farm_location}") for farm in Farm.query.all()]
         }
     }
 
@@ -392,12 +392,12 @@ class DiagnosticReportModelView(SecureModelView):
         'user_id': {
             'label': 'Usuario',
             'coerce': int,
-            'choices': lambda: [(u.id, f"{u.full_name} ({u.email})") for u in User.query.all()]
+            'choices': lambda: [(user.id, f"{user.full_name} ({user.email})") for user in User.query.all()]
         },
         'farm_id': {
             'label': 'Campo (Opcional)',
             'coerce': int,
-            'choices': lambda: [(0, 'Sin campo asignado')] + [(f.id, f"{f.farm_name} - {f.farm_location}") for f in Farm.query.all()]
+            'choices': lambda: [(0, 'Sin campo asignado')] + [(farm.id, f"{farm.farm_name} - {farm.farm_location}") for farm in Farm.query.all()]
         },
         'description': {
             'widget': TextAreaField().widget,
