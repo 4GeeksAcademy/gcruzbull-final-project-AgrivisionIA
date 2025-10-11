@@ -236,16 +236,15 @@ def get_profile():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Serializamos todas los huertos asociadas al usuario
-    farms = [farm.serialize() for farm in user.farm_of_user]
+    farms = [farm.serialize() for farm in user.farm_of_user]    # Serializamos todas los huertos asociadas al usuario
 
     return jsonify({
         "full_name": user.full_name,
         "email": user.email,
-        'is_admin': user.is_admin == 'admin',  # CONVERTIR A BOOLEAN para el frontend
+        'is_admin': user.is_admin,  # Ya es Boolean, no convertir
         "phone_number": user.phone_number,
         "avatar": user.avatar,
-        "farms": farms              # Lista de diccionarios con farm_name, farm_location y user_id
+        "farms": farms             # Lista de diccionarios con farm_name, farm_location y user_id
     }), 200
 
 # 7) Ruta del AboutUs

@@ -62,7 +62,7 @@ def setup_commands(app):
             click.echo(result["message"])
             return
         
-        # Crear salt y hash de contraseña (como en tu register)
+        # Crear salt y hash de contraseña (como en register)
         salt = b64encode(os.urandom(32)).decode("utf-8")
         
         # Usar la misma función de hash que en routes.py
@@ -78,7 +78,7 @@ def setup_commands(app):
             phone_number="000000000",  # Teléfono por defecto
             password=password_hash,
             salt=salt,
-            is_admin='admin'  # Crear directamente como admin
+            is_admin=True  # Crear admin
         )
         
         try:

@@ -114,7 +114,7 @@ def make_user_admin(email):
         }
     
     # Cambiar a admin
-    user.is_admin = 'admin'
+    user.is_admin = True
     
     try:
         db.session.commit()
@@ -154,7 +154,7 @@ def remove_admin_privileges(email):
         }
     
     # Cambiar a user
-    user.is_admin = 'user'
+    user.is_admin = False
     
     try:
         db.session.commit()
@@ -183,7 +183,7 @@ def list_all_users():
         "email": user.email,
         "full_name": user.full_name,
         "is_admin": user.is_admin,
-        "role_display": "Administrador" if user.is_admin == 'admin' else "Usuario"
+        "role_display": "Administrador" if user.is_admin else "Usuario"
     } for user in users]
 
 def is_user_admin(email):
@@ -197,7 +197,7 @@ def is_user_admin(email):
         bool: True si es admin, False si no
     """
     user = User.query.filter_by(email=email).first()
-    return user and user.is_admin == 'admin'
+    return user and user.is_admin
 
 def is_user_admin_by_id(user_id):
     """
@@ -210,7 +210,7 @@ def is_user_admin_by_id(user_id):
         bool: True si es admin, False si no
     """
     user = User.query.get(user_id)
-    return user and user.is_admin == 'admin'
+    return user and user.is_admin
 
 def get_admin_users():
     """
@@ -219,7 +219,7 @@ def get_admin_users():
     Returns:
         list: Lista de usuarios administradores
     """
-    admins = User.query.filter_by(is_admin='admin').all()
+    admins = User.query.filter_by(is_admin=True).all()
     
     return [{
         "id": admin.id,
@@ -237,7 +237,7 @@ def get_regular_users():
     """
     from api.models import User
     
-    users = User.query.filter_by(is_admin='user').all()
+    users = User.query.filter_by(is_admin=False).all()
     
     return [{
         "id": user.id,

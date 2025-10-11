@@ -29,6 +29,9 @@ app = Flask(__name__)
 
 load_dotenv()
 
+# Agregar esta línea para Flask-Admin:
+app.secret_key = os.getenv("FLASK_APP_KEY")
+
 # jwt configuration. Must be after app = Flask(__name__)
 # setup jwt_extended to generate token
 # El token lo voy a generar en routes.py
